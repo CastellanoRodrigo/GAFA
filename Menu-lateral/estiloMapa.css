@@ -1,0 +1,79 @@
+body{
+    min-width: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.contenedor{
+    width: 740px;
+    height: 740px;
+
+    background-image:url("../imagenes/DonJuanSRL1.png");
+    object-fit: contain;
+    display: grid;
+    grid-template-columns: repeat(16, 1fr);
+    grid-template-rows: repeat(6, 1fr);
+}
+
+.area.active:hover{
+    border: 5px blue solid;
+}
+
+.area:nth-child(1){
+    grid-column: span 16;
+    grid-row: span 1;
+}
+
+.area:nth-child(2){
+    grid-column: span 7;
+}
+
+.area:nth-child(3){
+    grid-column: span 2;
+}
+
+.area:nth-child(4){
+    grid-column: span 7;
+    grid-row: span1;
+}
+.area:nth-child(5){
+    grid-column: span 16;
+    grid-row: span1;
+}
+.area:nth-child(6){
+    grid-column: span 16;
+    grid-row: span1;
+}
+.area:nth-child(7){
+    grid-column: span 16;
+    grid-row: span1;
+}
+.area:nth-child(8){
+    grid-column: span 16;
+    grid-row: span1;
+}
+.area:nth-child(9){
+    grid-column: span 16;
+    grid-row: span1;
+}
+.area:nth-child(10){
+    grid-column: span 16;
+    grid-row: span1;
+}
+.area:nth-child(11){
+    grid-column: span 16;
+    grid-row: span1;
+}
+.area:nth-child(12){
+    grid-column: span 16;
+    grid-row: span1;
+}
+.area:nth-child(13){
+    grid-column: span 16;
+    grid-row: span1;
+}
+.area:nth-child(14){
+    grid-column: span 16;
+    grid-row: span1;
+}
