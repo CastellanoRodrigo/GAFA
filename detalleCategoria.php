@@ -9,8 +9,8 @@ $consulta = Consultar($_GET['no']);
 function Consultar($no_id)
 {	
     include('./Modelo/Conexion.php');
-	$sentencia =  "SELECT * FROM categoria WHERE id_Categoria='".$no_id."'";
-	$resultado = mysqli_query($conexion, $sentencia);
+	$no_id = (int)$no_id; $sentencia = $conexion->prepare("SELECT * FROM categoria WHERE id_Categoria = ?"); $sentencia->bind_param("i", $no_id);
+	$sentencia->execute(); $resultado = $sentencia->get_result();
 	$filas = mysqli_fetch_assoc($resultado);
 	return [
 		$filas['id_Categoria'],/*0*/
@@ -36,7 +36,7 @@ $cat = $consulta[1];
             </div>
             <div>
                 <label for="name">Nombre de Categoria:</label>
-                <input type="text" name="cat" id="cat" value="<?php echo $cat;?>" required>
+                <input type="text" name="cat" id="cat" value="<?php echo htmlspecialchars((string)$cat, ENT_QUOTES, 'UTF-8');?>" required>
             </div>
             <div>
                 <button type="submit" class="btn btn-success">Modificar</button>

@@ -1,21 +1,30 @@
 <?php
-session_start();
 include('./Modelo/Conexion.php');
+include('./Modelo/Auth.php');
+requerirAdmin($conexion);
 
-$nombreFinal = $_POST['cat'];
-
-/* SI UNO DE LOS CAMPOS ESTA REPETIDO */
-$sql = "SELECT id_Categoria FROM categoria WHERE nombreCategoria = '$nombreFinal'";
-$resultado = $conexion->query($sql);
-$row = $resultado->fetch_assoc();
-$cat = $row['id_Categoria'];
-
-if(isset($cat)){
+$nombreFinal = trim($_POST['cat'] ?? '');
+if ($nombreFinal === '') {
     header("Location: ./categorias.php?error");
-    mysqli_close($conexion);
-}else{
-    mysqli_query($conexion, "INSERT INTO categoria VALUES(DEFAULT, '$nombreFinal')");
-    header("Location: ./categorias.php?ok");
-    mysqli_close($conexion);
+    exit;
 }
-?>
+
+/* SI EL NOMBRE ESTA REPETIDO */
+$stmt = $conexion->prepare("SELECT id_Categoria FROM categoria WHERE nombreCategoria = ?");
+$stmt->bind_param("s", $nombreFinal);
+$stmt->execute();
+$existe = $stmt->get_result()->fetch_assoc();
+$stmt->close();
+
+if ($existe) {
+    mysqli_close($conexion);
+    header("Location: ./categorias.php?error");
+    exit;
+}
+$stmt = $conexion->prepare("INSERT INTO categoria VALUES (DEFAULT, ?)");
+$stmt->bind_param("s", $nombreFinal);
+$stmt->execute();
+$stmt->close();
+mysqli_close($conexion);
+header("Location: ./categorias.php?ok");
+exit;

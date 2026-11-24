@@ -1,5 +1,9 @@
 <?php
 session_start();
+if (empty($_SESSION['usuario'])) {
+	http_response_code(403);
+	exit('Acceso denegado');
+}
 include('../Modelo/Conexion.php');
 
 ?>
@@ -38,7 +42,12 @@ include('../Modelo/Conexion.php');
 
 		//Seleccionar todos los elementos de la tabla
 	/* 	$result_msg_contatos = "SELECT * FROM contactos"; */
-		$variable = $_POST['sql'];
+		$variable = trim($_POST['sql'] ?? '');
+		// Medida provisoria: solo una sentencia SELECT (ver nota: lo ideal es recibir filtros y no SQL)
+		if (!preg_match('/^SELECT\s/i', $variable) || strpos($variable, ';') !== false) {
+			http_response_code(400);
+			exit('Consulta no permitida');
+		}
 		$resultado_msg_contatos = mysqli_query($conexion, $variable);
 
 		while ($row_msg_contatos = mysqli_fetch_assoc($resultado_msg_contatos)) {

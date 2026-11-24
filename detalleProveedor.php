@@ -9,8 +9,8 @@ $consulta = Consultar($_GET['no']);
 function Consultar($no_id)
 {	
     include('./Modelo/Conexion.php');
-	$sentencia =  "SELECT * FROM proveedores WHERE id_Proveedor='".$no_id."'";
-	$resultado = mysqli_query($conexion, $sentencia);
+	$no_id = (int)$no_id; $sentencia = $conexion->prepare("SELECT * FROM proveedores WHERE id_Proveedor = ?"); $sentencia->bind_param("i", $no_id);
+	$sentencia->execute(); $resultado = $sentencia->get_result();
 	$filas = mysqli_fetch_assoc($resultado);
 	return [
 		$filas['id_Proveedor'],/*0*/
@@ -36,7 +36,7 @@ $prov = $consulta[1];
             </div>
             <div>
                 <label for="name">Nombre del proveedor:</label>
-                <input type="text" name="prov" id="prov" value="<?php echo $prov;?>" required>
+                <input type="text" name="prov" id="prov" value="<?php echo htmlspecialchars((string)$prov, ENT_QUOTES, 'UTF-8');?>" required>
             </div>
             <div>
                 <button type="submit" class="btn btn-success">Modificar</button>

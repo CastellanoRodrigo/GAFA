@@ -9,8 +9,8 @@ $consulta = Consultar($_GET['no']);
 function Consultar($no_id)
 {	
     include('./Modelo/Conexion.php');
-	$sentencia =  "SELECT * FROM proyectos WHERE id_Proyecto='".$no_id."'";
-	$resultado = mysqli_query($conexion, $sentencia);
+	$no_id = (int)$no_id; $sentencia = $conexion->prepare("SELECT * FROM proyectos WHERE id_Proyecto = ?"); $sentencia->bind_param("i", $no_id);
+	$sentencia->execute(); $resultado = $sentencia->get_result();
 	$filas = mysqli_fetch_assoc($resultado);
 	return [
 		$filas['id_Proyecto'],/*0*/

@@ -1,17 +1,21 @@
 <?php
-session_start();
 include('./Modelo/Conexion.php');
+include('./Modelo/Auth.php');
+requerirLogin();
 
-$proyecto = $_POST['cmbNombre'];
-$txtFechaInicio = $_POST['txtFechaInicio'];
-$txtCabezas = $_POST['txtCabezas'];
-$cmbMoneda = $_POST['cmbMoneda'];
-$tipoCambio = $_POST['tipoCambio'];
-$txtInversion = $_POST['txtInversion'];
-$cmbCategoria = $_POST['cmbCategoria'];
-$txtFechaCierre = $_POST['txtFechaCierre'];
+$proyecto = (int)($_POST['cmbNombre'] ?? 0);
+$txtFechaInicio = $_POST['txtFechaInicio'] ?? '';
+$txtCabezas = (int)($_POST['txtCabezas'] ?? 0);
+$cmbMoneda = $_POST['cmbMoneda'] ?? '';
+$tipoCambio = $_POST['tipoCambio'] ?? '';
+$txtInversion = $_POST['txtInversion'] ?? '';
+$cmbCategoria = (int)($_POST['cmbCategoria'] ?? 0);
+$txtFechaCierre = $_POST['txtFechaCierre'] ?? '';
 
-mysqli_query($conexion, "INSERT INTO detallehacienda VALUES(DEFAULT, '$proyecto', '$txtFechaInicio', '$txtFechaCierre', '$txtCabezas', '$cmbCategoria', '$txtInversion', '$cmbMoneda', '$tipoCambio')");
-header("Location: ./detalleHacienda.php?ok");
+$stmt = $conexion->prepare("INSERT INTO detallehacienda VALUES (DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?)");
+$stmt->bind_param("issiisss", $proyecto, $txtFechaInicio, $txtFechaCierre, $txtCabezas, $cmbCategoria, $txtInversion, $cmbMoneda, $tipoCambio);
+$stmt->execute();
+$stmt->close();
 mysqli_close($conexion);
-?>
+header("Location: ./detalleHacienda.php?ok");
+exit;

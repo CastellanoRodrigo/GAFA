@@ -9,8 +9,8 @@ $consulta = Consultar($_GET['no']);
 function Consultar($no_id)
 {	
     include('./Modelo/Conexion.php');
-	$sentencia =  "SELECT * FROM compras WHERE id_Compras='".$no_id."'";
-	$resultado = mysqli_query($conexion, $sentencia);
+	$no_id = (int)$no_id; $sentencia = $conexion->prepare("SELECT * FROM compras WHERE id_Compras = ?"); $sentencia->bind_param("i", $no_id);
+	$sentencia->execute(); $resultado = $sentencia->get_result();
 	$filas = mysqli_fetch_assoc($resultado);
 	return [
 		$filas['id_Compras'],/*0*/
@@ -241,8 +241,8 @@ $id = $consulta[0];
                 <p>
                 <?php
                     $pdf = "./archivos/".$consulta[4].".pdf";
-                    $sent= "SELECT id_archivo FROM archivos WHERE url = '$pdf'";
-                    $resultado = $conexion->query($sent);
+                    $stA = $conexion->prepare("SELECT id_archivo FROM archivos WHERE url = ?"); $stA->bind_param("s", $pdf); $stA->execute();
+                    $resultado = $stA->get_result();
                     $row = $resultado->fetch_assoc();
                     $url = $row['id_archivo'];
 
@@ -260,8 +260,8 @@ $id = $consulta[0];
         </form>
         <?php
         $pdf = "./archivos/".$consulta[4].".pdf";
-        $sent= "SELECT id_archivo FROM archivos WHERE url = '$pdf'";
-        $resultado = $conexion->query($sent);
+        $stA = $conexion->prepare("SELECT id_archivo FROM archivos WHERE url = ?"); $stA->bind_param("s", $pdf); $stA->execute();
+        $resultado = $stA->get_result();
         $row = $resultado->fetch_assoc();
         $url = $row['id_archivo'];
 

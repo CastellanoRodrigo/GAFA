@@ -1,5 +1,9 @@
 <?php
 session_start();
+if (empty($_SESSION['usuario'])) {
+	http_response_code(403);
+	exit('Acceso denegado');
+}
 include('../Modelo/Conexion.php');
 
 ?>

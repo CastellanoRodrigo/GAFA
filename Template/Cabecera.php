@@ -3,11 +3,19 @@ session_start();
 include ("./Modelo/Conexion.php");
 if (empty($_SESSION["usuario"])) {
     header("location: login.php");
+    exit;
 }
 $iduser = $_SESSION['usuario'];
-$sql = "SELECT * FROM usuarios WHERE usuario='$iduser'";
-$resultado = $conexion->query($sql);
-$row = $resultado->fetch_assoc();
+$stmtCab = $conexion->prepare("SELECT * FROM usuarios WHERE usuario = ?");
+$stmtCab->bind_param("s", $iduser);
+$stmtCab->execute();
+$row = $stmtCab->get_result()->fetch_assoc();
+$stmtCab->close();
+if (!$row) {
+    session_destroy();
+    header("location: login.php");
+    exit;
+}
 
 $nombre = $row['nombre'];
 $apellido = $row['apellido'];

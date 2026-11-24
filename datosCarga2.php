@@ -1,29 +1,22 @@
 <?php
-session_start();
-include ("./Modelo/Conexion.php");
+include("./Modelo/Conexion.php");
+include('./Modelo/Auth.php');
+requerirLogin();
 
-$cmbparcela = $_POST['cmbparcela2'];
+$cmbparcela = (int)($_POST['cmbparcela2'] ?? 0);
 
-$sql = "SELECT p.id_Parcela, p.dimension, SUM(pr.cantidadHas) AS total
-FROM parcela p
-LEFT JOIN proyectos pr ON pr.id_Parcela = p.id_Parcela
-WHERE p.id_Parcela = '$cmbparcela'";
+$stmt = $conexion->prepare("SELECT p.id_Parcela, p.dimension FROM parcela p WHERE p.id_Parcela = ?");
+$stmt->bind_param("i", $cmbparcela);
+$stmt->execute();
+$row = $stmt->get_result()->fetch_assoc();
+$stmt->close();
 
-$resultado = $conexion->query($sql);
-$row = $resultado->fetch_assoc();
-$dimension = $row['dimension'];
-$total = $row['total'];
+$dimension = (int)($row['dimension'] ?? 0);
 
-/* $dispon = $dimension - $total; */
-
-$cadena = "<div class='labelInput'><label>Hectareas disponibles: </label><p>".$dimension." Has</p></div>";
-
-echo $cadena;
-
-echo"
+echo "<div class='labelInput'><label>Hectareas disponibles: </label><p>" . $dimension . " Has</p></div>";
+echo "
 <div class='labelInput'>
     <label for='name'>Cantidad de Hectareas:</label>
     <input type='number' name='cantHas2' min='1' max='$dimension' required>
 </div>
-"
-?>
+";

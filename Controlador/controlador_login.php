@@ -1,32 +1,53 @@
 <?php
-include ("../Modelo/Conexion.php");
+session_start();
+include("../Modelo/Conexion.php");
 
-if(isset($_POST['btningresar'])){
-	$usuario = $_POST['usuario'];
-	$contraseña = $_POST['password'];
-
-	$sql = "SELECT * FROM usuarios WHERE usuario = '$usuario'";
-	$resultado = $conexion->query($sql);
-	$row = $resultado->fetch_assoc();
-    $id = $row['id_usuario'];
-	$contra = $row['password'];
-	$estado = $row['id_EstadoUsuario'];
-
-
-    if($contraseña == $contra AND $estado == 1){
-        session_start();
-        $_SESSION['usuario'] = $usuario; 
-        header("location: ../login.php?ok");
-    }
-    if($estado != 1){
-        header("location: ../login.php?ini");
-        mysqli_close($conexion);
-    }
-    if($contraseña != $contra){
-        $_SESSION['usuario'] = $usuario; 
-        header("location: ../login.php?err");
-        mysqli_close($conexion);
-    }
-    mysqli_close($conexion);
+if (!isset($_POST['btningresar'])) {
+    header("location: ../login.php");
+    exit;
 }
-?>
+
+$usuario = trim($_POST['usuario'] ?? '');
+$password = $_POST['password'] ?? '';
+
+$stmt = $conexion->prepare("SELECT id_usuario, password, id_EstadoUsuario FROM usuarios WHERE usuario = ?");
+$stmt->bind_param("s", $usuario);
+$stmt->execute();
+$row = $stmt->get_result()->fetch_assoc();
+$stmt->close();
+
+// Usuario inexistente o contraseña incorrecta: mismo mensaje
+$stored = $row['password'] ?? '';
+$esHash = $row && strlen($stored) >= 60 && password_get_info($stored)['algo'] !== null;
+$valida = false;
+if ($row) {
+    // Compatibilidad: contraseñas antiguas en texto plano (se migran al primer login exitoso)
+    $valida = $esHash ? password_verify($password, $stored) : hash_equals($stored, $password);
+}
+
+if (!$valida) {
+    mysqli_close($conexion);
+    header("location: ../login.php?err");
+    exit;
+}
+
+if ((int)$row['id_EstadoUsuario'] !== 1) {
+    mysqli_close($conexion);
+    header("location: ../login.php?ini");
+    exit;
+}
+
+// Migrar a hash si aún estaba en texto plano (requiere columna password VARCHAR(255), ver migracion_password.sql)
+if (!$esHash) {
+    $nuevo = password_hash($password, PASSWORD_DEFAULT);
+    $up = $conexion->prepare("UPDATE usuarios SET password = ? WHERE id_usuario = ?");
+    $up->bind_param("si", $nuevo, $row['id_usuario']);
+    $up->execute();
+    $up->close();
+}
+
+session_regenerate_id(true);
+$_SESSION['usuario'] = $usuario;
+mysqli_close($conexion);
+header("location: ../login.php?ok");
+exit;

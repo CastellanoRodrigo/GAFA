@@ -1,28 +1,27 @@
 <?php
-session_start();
-include ("./Modelo/Conexion.php");
+include("./Modelo/Conexion.php");
+include('./Modelo/Auth.php');
+requerirLogin();
 
-if(isset($_POST['btn1'])){
-    $parcela1 = $_POST['cmbparcela1'];
-    $proyecto1 = $_POST['nombre1'];
-    $tipo1 = $_POST['cmbTipoProyecto1'];
-    $cantidad1 = $_POST['cantHas1'];
-    $estado1 = $_POST['cmbEstado1'];
-
-    mysqli_query($conexion, "INSERT INTO proyectos VALUES(DEFAULT, '$parcela1', '$proyecto1', '$tipo1', '$cantidad1', '$estado1')");
+function insertarProyecto($conexion, int $parcela, string $nombre, int $tipo, int $cantidad, int $estado): void
+{
+    $stmt = $conexion->prepare("INSERT INTO proyectos VALUES (DEFAULT, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("isiii", $parcela, $nombre, $tipo, $cantidad, $estado);
+    $stmt->execute();
+    $stmt->close();
 }
 
-if(isset($_POST['btn2'])){
-    $parcela2 = $_POST['cmbparcela2'];
-    $proyecto2 = $_POST['nombre2'];
-    $tipo2 = $_POST['cmbTipoProyecto2'];
-    $cantidad2 = $_POST['cantHas2'];
-    $estado2 = 3;/* Proyecto finalizado */
-
-    mysqli_query($conexion, "INSERT INTO proyectos VALUES(DEFAULT, '$parcela2', '$proyecto2', '$tipo2', '$cantidad2', '$estado2')");
+if (isset($_POST['btn1'])) {
+    insertarProyecto($conexion, (int)($_POST['cmbparcela1'] ?? 0), trim($_POST['nombre1'] ?? ''),
+        (int)($_POST['cmbTipoProyecto1'] ?? 0), (int)($_POST['cantHas1'] ?? 0), (int)($_POST['cmbEstado1'] ?? 0));
 }
 
-header("Location: ./altaProyectos.php?ok");
+if (isset($_POST['btn2'])) {
+    $estado2 = 3; /* Proyecto finalizado */
+    insertarProyecto($conexion, (int)($_POST['cmbparcela2'] ?? 0), trim($_POST['nombre2'] ?? ''),
+        (int)($_POST['cmbTipoProyecto2'] ?? 0), (int)($_POST['cantHas2'] ?? 0), $estado2);
+}
+
 mysqli_close($conexion);
-
-?>
+header("Location: ./altaProyectos.php?ok");
+exit;
