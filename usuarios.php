@@ -1,4 +1,7 @@
-<title>Don Juan S.R.L - Usuarios</title>
+<?php
+include('./Modelo/Conexion.php'); include_once('./Modelo/Auth.php'); requerirAdmin($conexion);
+?>
+<title>GAFA - Usuarios</title>
 <?php
 include('./Template/Cabecera.php');
 include('./Modelo/Conexion.php');

@@ -1,7 +1,7 @@
 <?php
 include("./Modelo/Conexion.php");
 include_once('./Modelo/Auth.php');
-requerirLogin();
+requerirEscritura($conexion);
 
 // Captura los datos ingresados en el formulario
 $fecha = $_POST['fecha'] ?? '';

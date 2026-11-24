@@ -7,6 +7,13 @@ if (isset($_GET['ok']) && !empty($_SESSION['usuario'])) {
 }
 $_SESSION = [];
 session_destroy();
+$empLogin = '';
+try {
+    include('./Modelo/Conexion.php');
+    include_once('./Modelo/Empresa.php');
+    $empLogin = empresa($conexion)['nombre'];
+} catch (Throwable $e) {
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -25,6 +32,7 @@ session_destroy();
         <input class="cajas" type="password" name="password" placeholder="Contraseña" required>
         <input class="btn" type="submit" name="btningresar" value="Ingresar">
     </form>
+    <?php if ($empLogin !== '') { ?><p class="pie-login">Sistema GAFA · <?php echo htmlspecialchars($empLogin, ENT_QUOTES, 'UTF-8'); ?></p><?php } ?>
     <script>
         const q = window.location.search;
         if (q.includes('err')) {

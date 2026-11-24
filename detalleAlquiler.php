@@ -1,4 +1,7 @@
-<title>Don Juan S.R.L - Detalle de alquiler</title>
+<?php
+include('./Modelo/Conexion.php'); include_once('./Modelo/Auth.php'); requerirEscritura($conexion);
+?>
+<title>GAFA - Detalle de alquiler</title>
 <?php
 include('./Modelo/Conexion.php');
 include_once('./Modelo/Auth.php');

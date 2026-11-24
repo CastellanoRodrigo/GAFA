@@ -1,4 +1,5 @@
 <?php #Llammo a pie 
+include('./Modelo/Conexion.php'); include_once('./Modelo/Auth.php'); requerirEscritura($conexion);
 include ("./Modelo/Conexion.php");
 include('./Template/Cabecera.php');?>
 <!--codigo aca-->

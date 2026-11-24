@@ -1,4 +1,4 @@
-<title>Don Juan S.R.L - Compras</title>
+<title>GAFA - Compras</title>
 <?php
 include('./Template/Cabecera.php');
 include('./Modelo/Conexion.php');

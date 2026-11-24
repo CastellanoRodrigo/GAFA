@@ -1,4 +1,5 @@
 <?php
+include('./Modelo/Conexion.php'); include_once('./Modelo/Auth.php'); requerirAdmin($conexion);
 include('./Template/Cabecera.php');
 include('./Modelo/Conexion.php');
 include_once('./Modelo/Auth.php');

@@ -1,4 +1,4 @@
-<title>Don Juan S.R.L - Alquileres</title>
+<title>GAFA - Alquileres</title>
 <?php
 include('./Template/Cabecera.php');
 include('./Modelo/Conexion.php');

@@ -5,6 +5,7 @@ requerirLogin();
 
 // Procesar la asignacion ANTES de imprimir nada (para poder redirigir)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    requerirEscritura($conexion);
     $idCompra = (int)($_POST['compra'] ?? 0);
     $idProyecto = (int)($_POST['proyecto'] ?? 0);
 
@@ -56,7 +57,7 @@ $proyectos = mysqli_fetch_all(mysqli_query($conexion,
      FROM proyectos p LEFT JOIN estadoproyecto e ON e.id_EstadoProyecto = p.id_EstadoProyecto
      ORDER BY p.nombreProyecto"), MYSQLI_ASSOC);
 ?>
-<title>Don Juan S.R.L - Asignar compras</title>
+<title>GAFA - Asignar compras</title>
 <?php include('./Template/Cabecera.php'); ?>
 <center>
     <h1>ASIGNAR COMPRAS A PROYECTOS</h1>

@@ -2,7 +2,7 @@
 include('./Modelo/Conexion.php');
 include_once('./Modelo/Auth.php');
 include_once('./Modelo/Alquileres.php');
-requerirLogin();
+requerirEscritura($conexion);
 
 $idCobro = (int)($_POST['cobro'] ?? 0);
 $accion = $_POST['accion'] ?? '';

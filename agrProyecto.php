@@ -1,7 +1,7 @@
 <?php
 include("./Modelo/Conexion.php");
 include_once('./Modelo/Auth.php');
-requerirLogin();
+requerirEscritura($conexion);
 
 function insertarProyecto($conexion, int $parcela, string $nombre, int $tipo, int $cantidad, int $estado): void
 {

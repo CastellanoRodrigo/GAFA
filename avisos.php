@@ -22,7 +22,7 @@ function fechaAviso($conexion, array $a, string $canal): string
     return $f ? date('d/m/Y', strtotime($f)) : '';
 }
 ?>
-<title>Don Juan S.R.L - Avisos</title>
+<title>GAFA - Avisos</title>
 <?php include('./Template/Cabecera.php'); ?>
 <center>
     <h1>AVISOS DE VENCIMIENTOS Y PAGOS</h1>

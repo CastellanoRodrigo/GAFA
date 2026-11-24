@@ -1,4 +1,4 @@
-<title>Don Juan S.R.L - Proyectos</title>
+<title>GAFA - Proyectos</title>
 <?php
 include('./Template/Cabecera.php');
 include('./Modelo/Conexion.php');

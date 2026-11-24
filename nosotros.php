@@ -1,4 +1,4 @@
-<title>Don Juan S.R.L - Quiénes somos</title>
+<title>GAFA - Quiénes somos</title>
 <?php
 include('./Template/Cabecera.php');
 ?>

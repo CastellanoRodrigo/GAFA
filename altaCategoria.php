@@ -1,4 +1,5 @@
 <?php #Llammo a cabecera, incluye el archivo cabecera.php desde template
+include('./Modelo/Conexion.php'); include_once('./Modelo/Auth.php'); requerirAdmin($conexion);
 include ("./Modelo/Conexion.php");
 include('./Template/Cabecera.php');
 ?>

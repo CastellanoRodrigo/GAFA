@@ -116,3 +116,8 @@ body {
     .form-login { padding: 26px 20px; }
     body { background-attachment: scroll; }
 }
+
+.pie-login {
+    position: fixed; left: 0; right: 0; bottom: 14px; text-align: center;
+    color: #f3e7c4; font-size: .9rem; text-shadow: 0 1px 4px rgba(0, 0, 0, .7);
+}

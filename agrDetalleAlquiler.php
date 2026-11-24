@@ -2,7 +2,7 @@
 include('./Modelo/Conexion.php');
 include_once('./Modelo/Auth.php');
 include_once('./Modelo/Alquileres.php');
-requerirLogin();
+requerirEscritura($conexion);
 
 function volverConError($conexion, string $codigo): void
 {

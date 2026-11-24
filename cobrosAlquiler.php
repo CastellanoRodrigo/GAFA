@@ -1,4 +1,4 @@
-<title>Don Juan S.R.L - Cobros de alquiler</title>
+<title>GAFA - Cobros de alquiler</title>
 <?php
 include('./Template/Cabecera.php');
 include('./Modelo/Conexion.php');

@@ -1,3 +1,6 @@
 config/notificaciones.php
+config/base_datos.php
 storage/*
 !storage/.htaccess
+uploads/*
+!uploads/.htaccess

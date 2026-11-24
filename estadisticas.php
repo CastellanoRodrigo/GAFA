@@ -1,4 +1,4 @@
-<title>Don Juan S.R.L - Estadísticas</title>
+<title>GAFA - Estadísticas</title>
 <?php
 include('./Template/Cabecera.php');
 ?>

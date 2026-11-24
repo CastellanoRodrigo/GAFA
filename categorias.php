@@ -1,4 +1,4 @@
-<title>Don Juan S.R.L detalles</title>
+<title>GAFA detalles</title>
 <?php #Llammo a cabecera, incluye el archivo cabecera.php desde template
 include('./Template/Cabecera.php');
 include('./Modelo/Conexion.php');

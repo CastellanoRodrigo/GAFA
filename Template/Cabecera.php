@@ -3,6 +3,7 @@ session_start();
 include ("./Modelo/Conexion.php");
 include_once('./Modelo/Auth.php');
 include_once('./Modelo/Notificaciones.php');
+include_once('./Modelo/Empresa.php');
 if (empty($_SESSION["usuario"])) {
     header("location: login.php");
     exit;
@@ -22,6 +23,11 @@ if (!$row) {
 $nombre = nombrePropio($row['nombre']);
 $apellido = nombrePropio($row['apellido']);
 $cantAvisos = notificacionesListas($conexion) ? count(construirAvisos($conexion, configNotificaciones())) : 0;
+$emp = empresa($conexion);
+$logoEmp = logoEmpresa($emp);
+$puedeEscribir = puedeEscribir($conexion);
+$esAdminUsr = esAdmin($conexion);
+$rolNombre = nombreRol(rolUsuario($conexion));
 ?>
 
 <!DOCTYPE html>
@@ -39,7 +45,8 @@ $cantAvisos = notificacionesListas($conexion) ? count(construirAvisos($conexion,
     <script src="https://code.jquery.com/jquery-3.6.4.js" integrity="sha256-a9jBBRygX1Bh5lt8GZjXDzyOB+bWve9EiO7tROUtj/E=" crossorigin="anonymous"></script>
 	<link rel="stylesheet" href="estilos.css">
 	<link rel="stylesheet" href="Css/tema.css">
-	<title>GAFA - Don Juan S.R.L</title>
+	<?php if (strtolower($emp['color']) !== EMPRESA_COLOR_BASE) { ?><style>:root { --verde: <?php echo e($emp['color']); ?>; --verde-oscuro: <?php echo e(colorOscuro($emp['color'])); ?>; }</style><?php } ?>
+	<title>GAFA - <?php echo e($emp['nombre']); ?></title>
 </head>
 <body>
 
@@ -48,7 +55,8 @@ $cantAvisos = notificacionesListas($conexion) ? count(construirAvisos($conexion,
 	<div class="titPrincipal">
 		<a href="./inicio.php" class="marca" title="Ir al inicio">
 			<img src="imgs/GAFA_LOGO_oscuro.png" alt="GAFA - Ganadería y Agricultura de Fácil Administración">
-			<span class="marca-texto">Don Juan <small>S.R.L</small></span>
+			<?php if ($logoEmp) { ?><img src="<?php echo e($logoEmp); ?>?v=<?php echo (int)@filemtime(__DIR__ . '/../' . $logoEmp); ?>" alt="<?php echo e($emp['nombre']); ?>" class="logo-empresa"><?php } ?>
+			<span class="marca-texto"><?php echo e($emp['nombre']); ?></span>
 		</a>
 	</div>
     <nav class="navbar navbar-expand-lg navbar-light" style="border-bottom: 1px solid #0a6111;">
@@ -65,13 +73,13 @@ $cantAvisos = notificacionesListas($conexion) ? count(construirAvisos($conexion,
                         <a href="#" class="nav-link dropdown-toggle " id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="color: #0a6111;">Proyectos</a>
                         <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
                             <li class="nav-item">
-                                <a class="nav-link " href="./altaProyectos.php">Alta proyecto</a>
+                                <?php if ($puedeEscribir) { ?><a class="nav-link " href="./altaProyectos.php">Alta proyecto</a><?php } ?>
                             </li>
                             <li>
-                                <a class="nav-link " href="./detalleSiembra.php">Detalle Siembra</a>
+                                <?php if ($puedeEscribir) { ?><a class="nav-link " href="./detalleSiembra.php">Detalle Siembra</a><?php } ?>
                             </li>
                             <li>
-                                <a class="nav-link " href="./detalleHacienda.php">Detalle Hacienda</a></li><li><a class="nav-link " href="./detalleAlquiler.php">Detalle Alquiler</a></li><li><a class="nav-link " href="./alquileres.php">Alquileres y cobros</a>
+                                <?php if ($puedeEscribir) { ?><a class="nav-link " href="./detalleHacienda.php">Detalle Hacienda</a><?php } ?></li><li><?php if ($puedeEscribir) { ?><a class="nav-link " href="./detalleAlquiler.php">Detalle Alquiler</a><?php } ?></li><li><a class="nav-link " href="./alquileres.php">Alquileres y cobros</a>
                             </li>
 							<li>
                                 <a class="nav-link " href="./todosLosProyectos.php">Listado de Proyectos</a>
@@ -82,7 +90,7 @@ $cantAvisos = notificacionesListas($conexion) ? count(construirAvisos($conexion,
                         <a href="#" class="nav-link dropdown-toggle " id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="color: #0a6111;">Compras y Gastos</a>
                         <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
                             <li class="nav-item">
-                                <a class="nav-link " href="./altaCompras.php">Cargar compra</a>
+                                <?php if ($puedeEscribir) { ?><a class="nav-link " href="./altaCompras.php">Cargar compra</a><?php } ?>
                             </li>
                             <li>
                                 <a class="nav-link " href="./verCompras.php">Ver compras</a>
@@ -93,13 +101,13 @@ $cantAvisos = notificacionesListas($conexion) ? count(construirAvisos($conexion,
                         <a href="#" class="nav-link dropdown-toggle " id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="color: #0a6111;">Gestión</a>
                         <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
                             <li class="nav-item">
-                                <a class="nav-link " href="./usuarios.php">Usuarios</a>
+                                <?php if ($esAdminUsr) { ?><a class="nav-link " href="./usuarios.php">Usuarios</a><?php } ?>
                             </li>
                             <li>
-                                <a class="nav-link " href="./proveedores.php">Proveedores</a>
+                                <?php if ($esAdminUsr) { ?><a class="nav-link " href="./proveedores.php">Proveedores</a><?php } ?>
                             </li>
 							<li>
-                                <a class="nav-link " href="./categorias.php">Categorias</a>
+                                <?php if ($esAdminUsr) { ?><a class="nav-link " href="./categorias.php">Categorias</a><?php } ?></li><li><a class="nav-link " href="./parcelas.php">Parcelas</a><?php if ($esAdminUsr) { ?></li><li><a class="nav-link " href="./empresa.php">Empresa y marca</a></li><li><a class="nav-link " href="./respaldo.php">Copias de seguridad</a><?php } ?>
                             </li>
                         </ul>
                     </li>
@@ -125,7 +133,7 @@ $cantAvisos = notificacionesListas($conexion) ? count(construirAvisos($conexion,
             </div>
             <div class="exit">
 				<div class="exit-name">
-				<p><svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 448 512"><path d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3C0 498.7 13.3 512 29.7 512H418.3c16.4 0 29.7-13.3 29.7-29.7C448 383.8 368.2 304 269.7 304H178.3z"/></svg>&nbsp<?php echo htmlspecialchars($nombre." ".$apellido, ENT_QUOTES, 'UTF-8');?></p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 448 512"><path d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3C0 498.7 13.3 512 29.7 512H418.3c16.4 0 29.7-13.3 29.7-29.7C448 383.8 368.2 304 269.7 304H178.3z"/></svg>&nbsp<?php echo htmlspecialchars($nombre." ".$apellido, ENT_QUOTES, 'UTF-8'); ?> <small class="rol-usuario"><?php echo e($rolNombre); ?></small></p>
 				</div>
 				<div class="exit-exit">
 					<a href="./login.php">
@@ -204,10 +212,10 @@ $cantAvisos = notificacionesListas($conexion) ? count(construirAvisos($conexion,
 						<div class="enlaces-subcategoria">
 							<button class="btn-regresar"><i class="fas fa-arrow-left"></i>Regresar</button>
 							<h3 class="subtitulo">Proyectos</h3>
-							<a href="./altaProyectos.php">Alta Proyecto</a>
-							<a href="./detalleSiembra.php">Detalle siembra</a>
-							<a href="./detalleHacienda.php">Detalle Hacienda</a>
-							<a href="./detalleAlquiler.php">Detalle Alquiler</a>
+							<?php if ($puedeEscribir) { ?><a href="./altaProyectos.php">Alta Proyecto</a><?php } ?>
+							<?php if ($puedeEscribir) { ?><a href="./detalleSiembra.php">Detalle siembra</a><?php } ?>
+							<?php if ($puedeEscribir) { ?><a href="./detalleHacienda.php">Detalle Hacienda</a><?php } ?>
+							<?php if ($puedeEscribir) { ?><a href="./detalleAlquiler.php">Detalle Alquiler</a><?php } ?>
 							<a href="./alquileres.php">Alquileres y cobros</a>
 							<a href="./avisos.php">Avisos de vencimientos</a>
 							<a href="./todosLosProyectos.php">Listado de proyectos</a>
@@ -239,8 +247,8 @@ $cantAvisos = notificacionesListas($conexion) ? count(construirAvisos($conexion,
 						<div class="enlaces-subcategoria">
 							<button class="btn-regresar"><i class="fas fa-arrow-left"></i>Regresar</button>
 							<h3 class="subtitulo">Compras y Ventas </h3>
-							<a href="./altaCompras.php">Cargar Compra</a>
-							<a href="./asignarCompra.php"> Asignar Compra</a>
+							<?php if ($puedeEscribir) { ?><a href="./altaCompras.php">Cargar Compra</a><?php } ?>
+							<?php if ($puedeEscribir) { ?><a href="./asignarCompra.php"> Asignar Compra</a><?php } ?>
 							<a href="./verCompras.php">Ver compras</a>
 						</div>
 
@@ -270,9 +278,9 @@ $cantAvisos = notificacionesListas($conexion) ? count(construirAvisos($conexion,
 						<div class="enlaces-subcategoria">
 							<button class="btn-regresar"><i class="fas fa-arrow-left"></i>Regresar</button>
 							<h3 class="subtitulo">Usuarios</h3>
-							<a href="./usuarios.php">Usuarios</a>
-							<a href="./proveedores.php">Proveedores</a>
-							<a href="./categorias.php">Categorias</a>
+							<?php if ($esAdminUsr) { ?><a href="./usuarios.php">Usuarios</a><?php } ?>
+							<?php if ($esAdminUsr) { ?><a href="./proveedores.php">Proveedores</a><?php } ?>
+							<?php if ($esAdminUsr) { ?><a href="./categorias.php">Categorias</a><?php } ?>
 						
 						</div>
 

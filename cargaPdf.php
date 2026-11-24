@@ -1,10 +1,7 @@
 <?php
-session_start();
-if (empty($_SESSION['usuario'])) {
-    header("Location: ./login.php");
-    exit;
-}
 include('./Modelo/Conexion.php');
+include_once('./Modelo/Auth.php');
+requerirEscritura($conexion);
 
 // Solo caracteres seguros en el nombre del archivo (evita path traversal)
 $nroFactura = preg_replace('/[^A-Za-z0-9_-]/', '', $_POST['nroFactura'] ?? '');

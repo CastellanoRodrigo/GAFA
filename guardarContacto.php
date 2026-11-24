@@ -2,7 +2,7 @@
 include('./Modelo/Conexion.php');
 include_once('./Modelo/Auth.php');
 include_once('./Modelo/Notificaciones.php');
-requerirLogin();
+requerirEscritura($conexion);
 
 $id = (int)($_POST['contrato'] ?? 0);
 $email = trim($_POST['email'] ?? '');

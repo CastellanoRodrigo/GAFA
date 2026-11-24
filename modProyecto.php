@@ -1,7 +1,7 @@
 <?php
 include('./Modelo/Conexion.php');
 include_once('./Modelo/Auth.php');
-requerirAdmin($conexion);
+requerirEscritura($conexion);
 
 $id = (int)($_POST['id'] ?? 0);
 $estado = (int)($_POST['estado'] ?? 0);

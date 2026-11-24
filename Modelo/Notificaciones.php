@@ -2,6 +2,7 @@
 // Avisos de vencimientos y pagos por mail y WhatsApp.
 require_once __DIR__ . '/Moneda.php';
 require_once __DIR__ . '/Alquileres.php';
+require_once __DIR__ . '/Empresa.php';
 
 function configNotificaciones(): array
 {
@@ -12,6 +13,11 @@ function configNotificaciones(): array
     $cfg = array_merge($defecto, $real);
     foreach (['email', 'whatsapp'] as $sec) {
         $cfg[$sec] = array_merge($defecto[$sec], $real[$sec] ?? []);
+    }
+    // Sin nombre fijado en el archivo de configuracion, se usa el de la empresa cargada en el sistema
+    if (trim((string)($real['empresa'] ?? '')) === '') {
+        $cfg['empresa'] = empresa()['nombre'];
+        if (trim((string)($real['email']['nombre_remitente'] ?? '')) === '') $cfg['email']['nombre_remitente'] = $cfg['empresa'];
     }
     return $cfg;
 }

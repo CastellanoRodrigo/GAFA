@@ -23,7 +23,7 @@ function peticion(string $url, ?array $post = null, string $cookie = '', array $
     curl_close($ch);
     preg_match('/Location:\s*(\S+)/i', $h, $loc);
     preg_match('/Set-Cookie:\s*(PHPSESSID=[^;]+)/i', $h, $ck);
-    return ['code' => $code, 'loc' => $loc[1] ?? '', 'cookie' => $ck[1] ?? '', 'body' => substr($r, $hs)];
+    return ['code' => $code, 'loc' => $loc[1] ?? '', 'cookie' => $ck[1] ?? '', 'body' => substr($r, $hs), 'headers' => $h];
 }
 
 function prueba(string $nombre, bool $ok): void
@@ -411,6 +411,177 @@ prueba('al crear un usuario el nombre se guarda con mayuscula inicial ("María J
 prueba('mayusculas respetan apostrofes, guiones y tildes ("Juan Carlos O\'Brien-Pérez")', strpos($r['body'], '>Juan Carlos<') !== false && strpos(html_entity_decode($r['body'], ENT_QUOTES), "O'Brien-Pérez") !== false);
 $r = peticion("$base/detalleUsuario.php?no=1", null, $cookieAdmin);
 prueba('detalleUsuario muestra el nombre con mayuscula', strpos($r['body'], 'value="Lucila"') !== false && strpos($r['body'], 'value="Dolce"') !== false);
+// 4f. Roles: Administrador / Operador / Lector
+$op = ['usuario' => 'operador1', 'pass' => 'op1234', 'nombre' => 'ana', 'apellido' => 'gómez', 'tipo' => 3, 'estado' => 1];
+peticion("$base/agrUsuario.php", $op, $cookieAdmin);
+$rOp = login($base, 'operador1', 'op1234');
+$cookieOp = $rOp['cookie'];
+prueba('el operador puede iniciar sesion', $cookieOp !== '');
+$cookieLector = $lector['cookie'];
+$proy = ['btn1' => '1', 'cmbparcela1' => 3, 'nombre1' => 'Proy Rol', 'cmbTipoProyecto1' => 2, 'cantHas1' => 5, 'cmbEstado1' => 1];
+$cuando = function (string $url, array $post, string $cookie) use ($base) { return peticion("$base/$url", $post, $cookie); };
+foreach ([
+    ['agrProyecto.php', $proy], ['agrParcela.php', ['dimension' => 10]], ['modParcela.php', ['id' => 1, 'dimension' => 10]],
+    ['registrarCobro.php', ['cobro' => $idCobro, 'accion' => 'cobrar']], ['guardarContacto.php', ['contrato' => $idVen, 'email' => 'x@y.com']],
+    ['agrDetalleAlquiler.php', ['cmbNombre' => $pDup]], ['cargaCompra.php', ['fecha' => '2030-01-01']], ['asignarCompra.php', ['compra' => 3, 'proyecto' => 5]],
+    ['modProyecto.php', ['id' => 1, 'estado' => 2]], ['cargaPdf.php', ['nroFactura' => 'x']],
+] as [$url, $datos]) {
+    prueba("Lector no puede escribir: $url -> 403", $cuando($url, $datos, $cookieLector)['code'] === 403);
+}
+$r = $cuando('agrProyecto.php', $proy, $cookieLector);
+prueba('el rechazo al Lector es una pagina clara, no un error tecnico', strpos($r['body'], 'solo lectura') !== false);
+prueba('el Lector puede consultar compras, parcelas y avisos', peticion("$base/verCompras.php", null, $cookieLector)['code'] === 200
+    && peticion("$base/parcelas.php", null, $cookieLector)['code'] === 200 && peticion("$base/avisos.php", null, $cookieLector)['code'] === 200
+    && peticion("$base/asignarCompra.php", null, $cookieLector)['code'] === 200);
+$b1 = peticion("$base/inicio.php", null, $cookieLector)['body'];
+prueba('el menu del Lector oculta las opciones de carga y gestion', strpos($b1, 'href="./altaProyectos.php">Alta proyecto') === false && strpos($b1, 'href="./altaCompras.php">Cargar compra') === false
+    && strpos($b1, 'href="./usuarios.php">Usuarios') === false && strpos($b1, '>Lector</small>') !== false);
+$b2 = peticion("$base/inicio.php", null, $cookieAdmin)['body'];
+prueba('el menu del Administrador muestra carga, gestion y su rol', strpos($b2, 'href="./altaProyectos.php">Alta proyecto') !== false && strpos($b2, 'href="./usuarios.php">Usuarios') !== false
+    && strpos($b2, 'href="./respaldo.php">Copias de seguridad') !== false && strpos($b2, '>Administrador</small>') !== false);
+prueba('el Lector no ve el formulario para agregar parcelas', strpos(peticion("$base/parcelas.php", null, $cookieLector)['body'], 'action="./agrParcela.php"') === false);
+// Operador: carga datos pero no administra
+prueba('el Operador puede cargar proyectos', strpos($cuando('agrProyecto.php', $proy, $cookieOp)['loc'], 'altaProyectos.php?ok') !== false);
+prueba('el Operador puede registrar cobros', strpos($cuando('registrarCobro.php', ['cobro' => $idCobro, 'accion' => 'deshacer'], $cookieOp)['loc'], 'cobrosAlquiler.php') !== false);
+prueba('el Operador puede agregar parcelas', strpos($cuando('agrParcela.php', ['dimension' => 77], $cookieOp)['loc'], 'parcelas.php?ok') !== false);
+foreach ([['agrUsuario.php', $nuevoUsr2 + []], ['modProveedor.php', ['id' => 1, 'prov' => 'x']], ['agrCategoria.php', ['cat' => 'X']], ['enviarAviso.php', ['accion' => 'todos']],
+          ['guardarEmpresa.php', ['nombre' => 'X', 'color' => '#000000']], ['descargarRespaldo.php', ['accion' => 'descargar']]] as [$url, $datos]) {
+    prueba("Operador no administra: $url -> 403", $cuando($url, $datos, $cookieOp)['code'] === 403);
+}
+prueba('el Operador no entra a empresa.php ni respaldo.php', peticion("$base/empresa.php", null, $cookieOp)['code'] === 403 && peticion("$base/respaldo.php", null, $cookieOp)['code'] === 403);
+prueba('el Operador no entra a la gestion de usuarios (detalleUsuario)', peticion("$base/detalleUsuario.php?no=1", null, $cookieOp)['code'] === 403);
+
+// 4g. Parcelas
+$r = peticion("$base/parcelas.php", null, $cookieAdmin);
+prueba('parcelas muestra la parcela agregada (77 has) con libres', $r['code'] === 200 && strpos($r['body'], '>77<') !== false && !preg_match('/Fatal error|Warning:|Notice:/', $r['body']));
+preg_match_all('~name="id" value="(\d+)"~', $r['body'], $mp);
+$idParcelaNueva = (int)max($mp[1]);
+prueba('modificar una parcela actualiza las hectareas', strpos($cuando('modParcela.php', ['id' => $idParcelaNueva, 'dimension' => 88], $cookieAdmin)['loc'], 'parcelas.php?ok') !== false
+    && strpos(peticion("$base/parcelas.php", null, $cookieAdmin)['body'], '>88<') !== false);
+prueba('parcela con hectareas 0 -> error', strpos($cuando('agrParcela.php', ['dimension' => 0], $cookieAdmin)['loc'], 'parcelas.php?error') !== false);
+prueba('parcela con hectareas absurdas -> error', strpos($cuando('agrParcela.php', ['dimension' => 99999999], $cookieAdmin)['loc'], 'parcelas.php?error') !== false);
+prueba('parcelas sin sesion redirige a login', strpos(peticion("$base/parcelas.php")['loc'], 'login.php') !== false);
+
+// 4h. Empresa (marca blanca)
+$png = tempnam(sys_get_temp_dir(), 'png');
+$gd = imagecreatetruecolor(60, 60); imagefill($gd, 0, 0, imagecolorallocate($gd, 200, 30, 30)); imagepng($gd, $png);
+$gran = tempnam(sys_get_temp_dir(), 'big'); file_put_contents($gran, str_repeat('A', 1100000));
+$noImg = tempnam(sys_get_temp_dir(), 'txt'); file_put_contents($noImg, 'esto no es una imagen');
+$guardarEmp = function (array $d, ?CURLFile $logo = null, ?string $cookie = null) use ($base, $cookieAdmin) {
+    return peticion("$base/guardarEmpresa.php", $d, $cookie ?? $cookieAdmin, $logo ? ['logo' => $logo] : []);
+};
+$base0 = ['nombre' => 'Estancia La Aurora S.A.', 'color' => '#2a6bb5', 'lema' => '', 'cuit' => '30-12345678-9', 'email' => 'info@aurora.com', 'telefono' => '', 'direccion' => ''];
+prueba('empresa sin sesion redirige a login', strpos(peticion("$base/guardarEmpresa.php", $base0)['loc'], 'login.php') !== false);
+prueba('empresa: nombre vacio -> error', strpos($guardarEmp(['nombre' => '  '] + $base0)['loc'], 'error=nombre') !== false);
+prueba('empresa: color invalido -> error', strpos($guardarEmp(['color' => 'rojo'] + $base0)['loc'], 'error=color') !== false);
+prueba('empresa: color con codigo inyectado -> error', strpos($guardarEmp(['color' => '#fff;}</style><script>alert(1)</script>'] + $base0)['loc'], 'error=color') !== false);
+prueba('empresa: mail invalido -> error', strpos($guardarEmp(['email' => 'no-es-mail'] + $base0)['loc'], 'error=email') !== false);
+prueba('empresa: un archivo que no es imagen se rechaza', strpos($guardarEmp($base0, new CURLFile($noImg, 'image/png', 'logo.png'))['loc'], 'error=logo') !== false);
+prueba('empresa: un logo de mas de 1 MB se rechaza', strpos($guardarEmp($base0, new CURLFile($gran, 'image/png', 'logo.png'))['loc'], 'error=logo') !== false);
+prueba('empresa: sin logo cargado no queda ningun archivo', !is_file("$raiz/uploads/logo.png"));
+$rg = $guardarEmp($base0, new CURLFile($png, 'image/png', 'evil.php'));
+prueba('empresa: guardar nombre, color y logo -> ok', strpos($rg['loc'], 'empresa.php?ok') !== false);
+prueba('el logo se guarda con nombre fijo, nunca con el del usuario (evil.php)', is_file("$raiz/uploads/logo.png") && !is_file("$raiz/uploads/evil.php"));
+$b = peticion("$base/inicio.php", null, $cookieAdmin)['body'];
+prueba('la cabecera muestra el nombre de la empresa', strpos($b, '<span class="marca-texto">Estancia La Aurora S.A.</span>') !== false && strpos($b, '<title>GAFA - Estancia La Aurora S.A.</title>') !== false);
+prueba('la cabecera muestra el logo propio y aplica el color elegido', strpos($b, 'uploads/logo.png') !== false && strpos($b, '--verde: #2a6bb5') !== false);
+prueba('el pie muestra la version y la empresa', strpos($b, 'GAFA v1.0.0 · Estancia La Aurora S.A.') !== false);
+prueba('el saludo de inicio usa el nombre de la empresa', strpos($b, 'Todo el campo de Estancia La Aurora S.A.') !== false);
+prueba('el login muestra la empresa', strpos(peticion("$base/login.php")['body'], 'Sistema GAFA · Estancia La Aurora S.A.') !== false);
+prueba('el logo se sirve como imagen', ($rl = peticion("$base/uploads/logo.png"))['code'] === 200 && stripos($rl['headers'], 'image/png') !== false);
+$ant = $contarMails();
+$enviar(['accion' => 'uno', 'tipo' => $tipoVen, 'ref' => $refVen, 'canal' => 'email']);
+$mails = $leerMails();
+$ult = end($mails) ?: ['texto' => ''];
+prueba('los mails de aviso salen con el nombre de la empresa configurada', $contarMails() === $ant + 1 && strpos($ult['texto'], 'Estancia La Aurora S.A.') !== false && strpos($ult['texto'], 'Don Juan S.R.L') === false);
+foreach (glob($outbox . '/*.eml') ?: [] as $m) @unlink($m);
+prueba('quitar el logo borra el archivo', strpos($guardarEmp($base0 + ['quitar_logo' => '1'])['loc'], 'empresa.php?ok') !== false && !is_file("$raiz/uploads/logo.png")
+    && strpos(peticion("$base/inicio.php", null, $cookieAdmin)['body'], 'uploads/logo.png') === false);
+$guardarEmp(['nombre' => 'Don Juan S.R.L', 'color' => '#2f5d34', 'cuit' => '', 'email' => '', 'lema' => '', 'telefono' => '', 'direccion' => '']);
+$b = peticion("$base/inicio.php", null, $cookieAdmin)['body'];
+prueba('restaurar los valores originales vuelve la marca anterior', strpos($b, '<span class="marca-texto">Don Juan S.R.L</span>') !== false && strpos($b, '--verde: #') === false);
+@unlink($png); @unlink($gran); @unlink($noImg);
+
+// 4i. Copias de seguridad
+$dirResp = $raiz . '/storage/backups';
+foreach (glob($dirResp . '/*.sql') ?: [] as $v) @unlink($v);
+$r = peticion("$base/descargarRespaldo.php", ['accion' => 'descargar'], $cookieAdmin);
+prueba('descargar copia: archivo .sql adjunto', $r['code'] === 200 && preg_match('/Content-Disposition: attachment; filename="gafa-\d{8}-\d{6}\.sql"/i', $r['headers']) === 1);
+prueba('la copia incluye estructura y datos (usuarios, alquileres)', strpos($r['body'], 'CREATE TABLE `usuarios`') !== false && strpos($r['body'], 'INSERT INTO `usuarios`') !== false
+    && strpos($r['body'], 'CREATE TABLE `cobrosalquiler`') !== false && strpos($r['body'], 'Viejo Inquilino') !== false && strpos($r['body'], 'CREATE TABLE `notificaciones`') !== false);
+prueba('descargar copia sin sesion redirige a login', strpos(peticion("$base/descargarRespaldo.php", ['accion' => 'descargar'])['loc'], 'login.php') !== false);
+prueba('el Lector no puede descargar copias (403)', peticion("$base/descargarRespaldo.php", ['accion' => 'descargar'], $cookieLector)['code'] === 403);
+prueba('guardar copia en el servidor', strpos(peticion("$base/descargarRespaldo.php", ['accion' => 'guardar'], $cookieAdmin)['loc'], 'respaldo.php?ok') !== false && count(glob($dirResp . '/gafa-*.sql')) === 1);
+$nombreGuardado = basename(glob($dirResp . '/gafa-*.sql')[0] ?? '');
+prueba('respaldo.php lista la copia guardada', strpos(peticion("$base/respaldo.php", null, $cookieAdmin)['body'], $nombreGuardado) !== false);
+$r = peticion("$base/descargarRespaldo.php", ['accion' => 'bajar', 'archivo' => $nombreGuardado], $cookieAdmin);
+prueba('bajar una copia guardada', $r['code'] === 200 && strpos($r['body'], 'CREATE TABLE `usuarios`') !== false);
+$r = peticion("$base/descargarRespaldo.php", ['accion' => 'bajar', 'archivo' => '../config/notificaciones.ejemplo.php'], $cookieAdmin);
+prueba('no se puede bajar un archivo fuera de la carpeta de copias (path traversal)', strpos($r['loc'], 'respaldo.php?error') !== false && strpos($r['body'], 'dias_cuota_proxima') === false);
+prueba('el script diario de copias no se ejecuta por web (403)', peticion("$base/cron/respaldo.php")['code'] === 403);
+$php_ini = escapeshellarg((string)php_ini_loaded_file());
+exec('"' . PHP_BINARY . '" -c ' . $php_ini . ' ' . escapeshellarg($raiz . '/cron/respaldo.php') . ' --conservar=1 2>&1', $o1, $rc1);
+usleep(1100000);
+exec('"' . PHP_BINARY . '" -c ' . $php_ini . ' ' . escapeshellarg($raiz . '/cron/respaldo.php') . ' --conservar=1 2>&1', $o2, $rc2);
+prueba('el script diario de copias funciona y conserva solo las ultimas N', $rc1 === 0 && $rc2 === 0 && count(glob($dirResp . '/gafa-*.sql')) === 1);
+foreach (glob($dirResp . '/*.sql') ?: [] as $v) @unlink($v);
+
+// 4j. Instalador para una empresa nueva y conexion configurable
+$esq = file_get_contents($raiz . '/instalacion/esquema_limpio.sql');
+preg_match_all('/^CREATE TABLE `(\w+)`/m', $esq, $mt);
+$dbTest = new mysqli('127.0.0.1', 'root', '', 'donjuanbd', 3307);
+$tablasVivas = array_column($dbTest->query("SHOW FULL TABLES WHERE Table_type = 'BASE TABLE'")->fetch_all(), 0);
+sort($tablasVivas); $enEsquema = $mt[1]; sort($enEsquema);
+prueba('el esquema de instalacion esta al dia con la base (regenerar con instalacion/generar_esquema.php)', $tablasVivas === $enEsquema);
+prueba('el esquema de instalacion no trae datos de ejemplo', strpos($esq, 'Viejo Inquilino') === false && strpos($esq, 'Lucila') === false && strpos($esq, "'admin'") === false);
+
+$dbInst = 'gafa_test_instalacion';
+$cfgTmp = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'gafa_cfg_' . bin2hex(random_bytes(3)) . '.php';
+$dbTest->query("DROP DATABASE IF EXISTS `$dbInst`");
+$inst = function (array $extra) use ($raiz, $php_ini, $dbInst, $cfgTmp, &$salida) {
+    $args = array_merge(['host' => '127.0.0.1', 'puerto' => '3307', 'usuario' => 'root', 'clave' => '', 'base' => $dbInst, 'admin-usuario' => 'dueño', 'admin-clave' => 'ClaveTest123',
+                         'empresa' => 'Estancia Test', 'config' => $cfgTmp], $extra);
+    $cmd = '"' . PHP_BINARY . '" -c ' . $php_ini . ' ' . escapeshellarg($raiz . '/instalacion/instalar.php');
+    foreach ($args as $k => $v) $cmd .= ' ' . escapeshellarg("--$k=$v");
+    $salida = [];
+    exec($cmd . ' 2>&1', $salida, $rc);
+    return $rc;
+};
+prueba('instalador: una clave de administrador debil se rechaza', $inst(['admin-clave' => '123']) === 1);
+prueba('instalador: un nombre de base invalido se rechaza', $inst(['base' => 'gafa; DROP DATABASE donjuanbd']) === 1);
+prueba('instalador: crea la base de una empresa nueva', $inst(['admin-usuario' => 'dueno']) === 0 && strpos(implode("\n", $salida), 'Instalacion completa') !== false);
+$dbN = new mysqli('127.0.0.1', 'root', '', $dbInst, 3307);
+$n = fn(string $sql) => (int)$dbN->query($sql)->fetch_row()[0];
+prueba('instalador: crea todas las tablas', $n("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = '$dbInst'") === count($enEsquema));
+prueba('instalador: base limpia (sin proyectos, compras, parcelas ni usuarios de ejemplo)', $n("SELECT COUNT(*) FROM proyectos") === 0 && $n("SELECT COUNT(*) FROM compras") === 0
+    && $n("SELECT COUNT(*) FROM parcela") === 0 && $n("SELECT COUNT(*) FROM usuarios") === 1);
+prueba('instalador: catalogos cargados (roles, estados, monedas)', $n("SELECT COUNT(*) FROM tipo_usuario") === 3 && $n("SELECT COUNT(*) FROM moneda") === 2
+    && $n("SELECT COUNT(*) FROM tipoproyecto") === 3 && $n("SELECT COUNT(*) FROM estadoproyecto") === 3);
+$adm = $dbN->query("SELECT usuario, password, id_tipoUsuario, id_EstadoUsuario FROM usuarios")->fetch_assoc();
+prueba('instalador: administrador activo con la clave guardada con hash', $adm['usuario'] === 'dueno' && (int)$adm['id_tipoUsuario'] === 1 && (int)$adm['id_EstadoUsuario'] === 1
+    && password_verify('ClaveTest123', $adm['password']) && strpos($adm['password'], 'ClaveTest123') === false);
+prueba('instalador: guarda el nombre de la empresa', $dbN->query("SELECT valor FROM configuracion WHERE clave = 'nombre'")->fetch_row()[0] === 'Estancia Test');
+$cfgGen = is_file($cfgTmp) ? (require $cfgTmp) : [];
+prueba('instalador: escribe el archivo de conexion', ($cfgGen['base'] ?? '') === $dbInst && (int)($cfgGen['puerto'] ?? 0) === 3307);
+prueba('instalador: no instala sobre una base que ya tiene tablas', $inst(['admin-usuario' => 'otro']) === 2);
+// La aplicacion usa config/base_datos.php cuando existe (se restaura enseguida)
+$cfgApp = $raiz . '/config/base_datos.php';
+$tieneCfg = is_file($cfgApp);
+copy($cfgTmp, $cfgApp);
+$baseUsada = [];
+try {
+    $sondaPhp = tempnam(sys_get_temp_dir(), 'sonda') . '.php';
+    file_put_contents($sondaPhp, "<?php\nchdir(" . var_export($raiz, true) . ");\ninclude 'Modelo/Conexion.php';\necho mysqli_fetch_row(mysqli_query(\$conexion, 'SELECT DATABASE()'))[0];\n");
+    exec('"' . PHP_BINARY . '" -c ' . $php_ini . ' ' . escapeshellarg($sondaPhp) . ' 2>&1', $baseUsada);
+    @unlink($sondaPhp);
+} finally {
+    if (!$tieneCfg) @unlink($cfgApp);
+}
+prueba('la aplicacion toma la base de config/base_datos.php', trim(implode('', $baseUsada)) === $dbInst && !is_file($cfgApp));
+$dbN->close();
+$dbTest->query("DROP DATABASE IF EXISTS `$dbInst`");
+@unlink($cfgTmp);
+$dbTest->close();
 // 5. Subida de PDF
 $tmp = tempnam(sys_get_temp_dir(), 'pdf');
 file_put_contents($tmp, "%PDF-1.4\n%%EOF");
