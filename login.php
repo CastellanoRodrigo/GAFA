@@ -20,7 +20,9 @@ session_destroy();
 </head>
 <body>
     <form action="Controlador/controlador_login.php" method="POST" class="form-login">
-        <h5>Ingresar</h5>
+        <img class="logo" src="imgs/GAFA.png" alt="GAFA">
+        <h5>GAFA</h5>
+        <p class="lema">Ganadería y Agricultura de Fácil Administración</p>
         <input class="cajas" type="text" name="usuario" placeholder="Usuario" required autofocus>
         <input class="cajas" type="password" name="password" placeholder="Contraseña" required>
         <input class="btn" type="submit" name="btningresar" value="Ingresar">

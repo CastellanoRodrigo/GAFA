@@ -35,7 +35,8 @@ $apellido = $row['apellido'];
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://code.jquery.com/jquery-3.6.4.js" integrity="sha256-a9jBBRygX1Bh5lt8GZjXDzyOB+bWve9EiO7tROUtj/E=" crossorigin="anonymous"></script>
 	<link rel="stylesheet" href="estilos.css">
-	<title>Menu de Navegacion estilo Amazon</title>
+	<link rel="stylesheet" href="Css/tema.css">
+	<title>GAFA - Don Juan S.R.L</title>
 </head>
 <body>
 
@@ -52,7 +53,7 @@ $apellido = $row['apellido'];
             <div class="collapse navbar-collapse" id="navbarNav" >
                 <ul class="navbar-nav">
 				<li class="nav-item">
-					<a href="./Inicio.php" class="nav-link" style="color: #0a6111;" aria-current="page">Inicio</a>
+					<a href="./inicio.php" class="nav-link" style="color: #0a6111;" aria-current="page">Inicio</a>
 				</li>
                 <li class="nav-item dropdown">
                         <a href="#" class="nav-link dropdown-toggle " id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="color: #0a6111;">Proyectos</a>

@@ -1,15 +1,33 @@
-<title>Don Juan S.R.L</title>
 <?php
 include('./Template/Cabecera.php');
 ?>
-<center>
-    <h1>Bienvenido/a, <?php echo htmlspecialchars($nombre . ' ' . $apellido, ENT_QUOTES, 'UTF-8'); ?></h1>
-    <p>GAFA - Ganadería y Agricultura de Fácil Administración</p>
-    <br>
-    <div>
-        <a href="./todosLosProyectos.php" class="btn btn-success">Proyectos</a>
-        <a href="./verCompras.php" class="btn btn-success">Compras</a>
-        <a href="./estadisticas.php" class="btn btn-success">Estadísticas</a>
+<section class="portada">
+    <div class="portada-contenido">
+        <h1>Bienvenido/a, <?php echo htmlspecialchars($nombre . ' ' . $apellido, ENT_QUOTES, 'UTF-8'); ?></h1>
+        <p>Ganadería y Agricultura de Fácil Administración. Todo el campo de Don Juan, ordenado en un solo lugar.</p>
     </div>
-</center>
+</section>
+
+<section class="accesos">
+    <a class="acceso" href="./todosLosProyectos.php">
+        <span class="icono">🌾</span>
+        <h3>Proyectos</h3>
+        <p>Siembra y hacienda por parcela</p>
+    </a>
+    <a class="acceso" href="./verCompras.php">
+        <span class="icono">🧾</span>
+        <h3>Compras y gastos</h3>
+        <p>Facturas y proveedores</p>
+    </a>
+    <a class="acceso" href="./estadisticas.php">
+        <span class="icono">📊</span>
+        <h3>Estadísticas</h3>
+        <p>Inversión y resultados</p>
+    </a>
+    <a class="acceso" href="./proveedores.php">
+        <span class="icono">🤝</span>
+        <h3>Gestión</h3>
+        <p>Usuarios, proveedores y categorías</p>
+    </a>
+</section>
 <?php include('./Template/Pie.php'); ?>
