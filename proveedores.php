@@ -2,7 +2,7 @@
 <?php
 include('./Template/Cabecera.php');
 include('./Modelo/Conexion.php');
-include('./Modelo/Auth.php');
+include_once('./Modelo/Auth.php');
 ?>
 <center>
     <h1>PROVEEDORES</h1>

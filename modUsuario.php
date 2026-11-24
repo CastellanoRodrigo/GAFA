@@ -1,12 +1,12 @@
 <?php
 include('./Modelo/Conexion.php');
-include('./Modelo/Auth.php');
+include_once('./Modelo/Auth.php');
 requerirAdmin($conexion);
 
 $id = (int)($_POST['id'] ?? 0);
 $usuario = trim($_POST['usuario'] ?? '');
-$nombre = trim($_POST['nombre'] ?? '');
-$apellido = trim($_POST['apellido'] ?? '');
+$nombre = nombrePropio($_POST['nombre'] ?? '');
+$apellido = nombrePropio($_POST['apellido'] ?? '');
 $pass = $_POST['pass'] ?? '';
 $tipo = (int)($_POST['tipo'] ?? 0);
 $estado = (int)($_POST['estado'] ?? 0);

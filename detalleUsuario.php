@@ -1,7 +1,7 @@
 <?php
 include('./Template/Cabecera.php');
 include('./Modelo/Conexion.php');
-include('./Modelo/Auth.php');
+include_once('./Modelo/Auth.php');
 requerirAdmin($conexion);
 
 $idUsuario = (int)($_GET['no'] ?? 0);
@@ -35,11 +35,11 @@ if (!$u) {
             </div>
             <div class="labelInput">
                 <label for="nombre">Nombre:</label>
-                <input type="text" name="nombre" id="nombre" value="<?php echo e($u['nombre']); ?>" required>
+                <input type="text" name="nombre" id="nombre" value="<?php echo e(nombrePropio($u['nombre'])); ?>" required>
             </div>
             <div class="labelInput">
                 <label for="apellido">Apellido:</label>
-                <input type="text" name="apellido" id="apellido" value="<?php echo e($u['apellido']); ?>" required>
+                <input type="text" name="apellido" id="apellido" value="<?php echo e(nombrePropio($u['apellido'])); ?>" required>
             </div>
             <div class="labelInput">
                 <label for="pass">Contraseña nueva:</label>

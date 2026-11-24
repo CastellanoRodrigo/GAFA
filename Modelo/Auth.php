@@ -9,6 +9,22 @@ function e($valor): string
     return htmlspecialchars((string)$valor, ENT_QUOTES, 'UTF-8');
 }
 
+// Nombres propios con mayuscula inicial: "lucila dolce" -> "Lucila Dolce", "de la cruz" -> "De la Cruz"
+function nombrePropio(?string $texto): string
+{
+    $texto = trim((string)preg_replace('/\s+/u', ' ', (string)$texto));
+    if ($texto === '') return '';
+    $conectores = ['de', 'del', 'la', 'las', 'los', 'y', 'e', 'da', 'di', 'do', 'van', 'von'];
+    $palabras = explode(' ', mb_strtolower($texto, 'UTF-8'));
+    foreach ($palabras as $i => $p) {
+        if ($i > 0 && in_array($p, $conectores, true)) continue;
+        $palabras[$i] = preg_replace_callback('/(^|[\'\-])(\p{L})/u', function ($m) {
+            return $m[1] . mb_strtoupper($m[2], 'UTF-8');
+        }, $p);
+    }
+    return implode(' ', $palabras);
+}
+
 function requerirLogin(): void
 {
     if (empty($_SESSION['usuario'])) {

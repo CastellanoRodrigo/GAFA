@@ -1,6 +1,6 @@
 <?php
 include("./Modelo/Conexion.php");
-include('./Modelo/Auth.php');
+include_once('./Modelo/Auth.php');
 requerirLogin();
 
 function insertarProyecto($conexion, int $parcela, string $nombre, int $tipo, int $cantidad, int $estado): void

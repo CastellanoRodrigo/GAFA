@@ -396,3 +396,55 @@ td select.sel-proyecto { width: 100% !important; min-width: 220px; }
 .portada-logo { width: 220px; filter: drop-shadow(0 2px 3px rgba(0,0,0,.7)) drop-shadow(0 6px 16px rgba(0,0,0,.55)); }
 
 /* Login: mismo tratamiento para el logo claro */
+
+/* ==========================================================
+   Moneda (ARS / USD), tarjetas de resumen y estados
+   ========================================================== */
+.chip-moneda {
+	display: inline-block; padding: 1px 9px; border-radius: 999px;
+	font-size: .75rem; font-weight: 800; letter-spacing: .5px; vertical-align: middle;
+	border: 1.5px solid transparent;
+}
+.moneda-ars { background: #e8f0e3; color: #1f4d25; border-color: #9fc29a; }
+.moneda-usd { background: #e3edf8; color: #0f3c6e; border-color: #8fb3dd; }
+
+.resumen-alquiler {
+	width: min(1200px, 94vw); margin: 0 auto 16px;
+	display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; text-align: left;
+}
+.tarjeta-resumen {
+	background: var(--papel); border: 1px solid var(--borde); border-left: 6px solid var(--verde);
+	border-radius: var(--radio); box-shadow: var(--sombra); padding: 14px 18px;
+	display: flex; flex-direction: column; gap: 4px;
+}
+.tarjeta-resumen .num { font-family: 'Lora', Georgia, serif; font-size: 1.45rem; font-weight: 700; color: var(--verde-oscuro); }
+.tarjeta-resumen > span:last-child { color: var(--texto-suave); font-size: .9rem; }
+.tarjeta-resumen.aviso { border-left-color: var(--trigo); }
+.tarjeta-resumen.mal { border-left-color: #b4432e; }
+.tarjeta-resumen.mal .num { color: #8f2f1d; }
+.tarjeta-resumen.ars { border-left-color: #2f5d34; }
+.tarjeta-resumen.usd { border-left-color: #2a6bb5; }
+.tarjeta-resumen.usd .num { color: #0f3c6e; }
+
+.chip-estado { display: inline-block; padding: 2px 12px; border-radius: 999px; font-size: .8rem; font-weight: 800; }
+.est-ok { background: #e1f0dc; color: #1f5a25; }
+.est-aviso { background: #fbefcf; color: #7a5a06; }
+.est-mal { background: #f7dcd5; color: #8f2f1d; }
+.est-info { background: #e8e8e0; color: #4a4a40; }
+.texto-mal { color: #a2321f; }
+
+.ficha-contrato {
+	width: min(1200px, 94vw); margin: 0 auto 16px; text-align: left;
+	background: var(--papel); border: 1px solid var(--borde); border-radius: var(--radio);
+	box-shadow: var(--sombra); padding: 18px 24px;
+	display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px 30px;
+}
+.ficha-contrato h3 { margin: 0 0 4px; }
+.ayuda-form { color: var(--texto-suave); font-size: .9rem; margin: 0; }
+
+/* Avisos: contador junto al menu */
+.badge-avisos {
+	display: inline-block; min-width: 20px; padding: 1px 7px; margin-left: 4px;
+	background: #d4a84b; color: #1b1b18; border-radius: 999px;
+	font-size: .75rem; font-weight: 800; line-height: 1.4; text-align: center;
+}

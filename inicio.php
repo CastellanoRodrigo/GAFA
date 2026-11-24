@@ -20,6 +20,11 @@ include('./Template/Cabecera.php');
         <h3>Compras y gastos</h3>
         <p>Facturas y proveedores</p>
     </a>
+    <a class="acceso" href="./avisos.php">
+        <span class="icono">🔔</span>
+        <h3>Avisos<?php if (!empty($cantAvisos)) { ?> <span class="badge-avisos"><?php echo (int)$cantAvisos; ?></span><?php } ?></h3>
+        <p>Vencimientos y pagos por mail y WhatsApp</p>
+    </a>
     <a class="acceso" href="./estadisticas.php">
         <span class="icono">📊</span>
         <h3>Estadísticas</h3>

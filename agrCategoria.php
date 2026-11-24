@@ -1,6 +1,6 @@
 <?php
 include('./Modelo/Conexion.php');
-include('./Modelo/Auth.php');
+include_once('./Modelo/Auth.php');
 requerirAdmin($conexion);
 
 $nombreFinal = trim($_POST['cat'] ?? '');

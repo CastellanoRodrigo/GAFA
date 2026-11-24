@@ -7,7 +7,8 @@ if (empty($_SESSION['usuario'])) {
 	exit('Acceso denegado');
 }
 include('../Modelo/Conexion.php');
-include('../Modelo/Compras.php');
+include_once('../Modelo/Compras.php');
+include_once('../Modelo/Moneda.php');
 
 $filtros = filtrosCompras($_POST + $_GET);
 $compras = consultarCompras($conexion, $filtros);
@@ -32,11 +33,18 @@ foreach ($compras as $c) {
 	$html .= '<td>' . $h($c['nroFactura']) . '</td>';
 	$html .= '<td>' . $h($c['proveedor']) . '</td>';
 	$html .= '<td>' . $h($c['moneda']) . '</td>';
-	$html .= '<td>$' . number_format((float)$c['importeNeto'], 2, ',', '.') . '</td>';
+	$html .= '<td align="right">' . $h(montoMoneda($c['importeNeto'], $c['moneda'])) . '</td>';
 	$html .= '<td>' . $h($c['IVA']) . '%</td>';
-	$html .= '<td>$' . number_format((float)$c['importeTotal'], 2, ',', '.') . '</td>';
+	$html .= '<td align="right">' . $h(montoMoneda($c['importeTotal'], $c['moneda'])) . '</td>';
 	$html .= '<td>' . $h($c['formaPago']) . '</td>';
 	$html .= '</tr>';
+}
+// Totales discriminados por moneda
+$netos = totalesPorMoneda($compras, 'importeNeto');
+foreach (totalesPorMoneda($compras, 'importeTotal') as $mon => $t) {
+	$html .= '<tr style="font-weight:bold;background-color:#e8f0e3;"><td colspan="3">Total en ' . $h(strtolower(nombreMoneda($mon))) . ' (' . $h($mon) . ') - ' . (int)$t['cantidad'] . ' compra' . ($t['cantidad'] === 1 ? '' : 's') . '</td>'
+		. '<td>' . $h($mon) . '</td><td align="right">' . $h(montoMoneda($netos[$mon]['total'], $mon)) . '</td><td></td>'
+		. '<td align="right">' . $h(montoMoneda($t['total'], $mon)) . '</td><td></td></tr>';
 }
 $html .= '</table>';
 

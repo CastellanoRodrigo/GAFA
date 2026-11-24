@@ -7,7 +7,8 @@ if (empty($_SESSION['usuario'])) {
 	exit('Acceso denegado');
 }
 include('../Modelo/Conexion.php');
-include('../Modelo/Proyectos.php');
+include_once('../Modelo/Proyectos.php');
+include_once('../Modelo/Moneda.php');
 
 $filtros = filtrosProyectos($_POST + $_GET);
 $proyectos = consultarProyectos($conexion, $filtros);
@@ -17,7 +18,7 @@ $h = function ($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
 $fecha = function ($v) { return $v ? date('d-m-Y', strtotime($v)) : ''; };
 
 $arquivo = $conFiltro ? 'ProyectosFiltrados.xls' : 'Proyectos.xls';
-$columnas = ['Proyecto', 'Tipo', 'Parcela', 'Hectáreas', 'Estado', 'Fecha inicio', 'Fecha cierre', 'Cabezas', 'Categoría', 'Cultivo', 'Inversión inicial'];
+$columnas = ['Proyecto', 'Tipo', 'Parcela', 'Hectáreas', 'Estado', 'Fecha inicio', 'Fecha cierre', 'Cabezas', 'Categoría', 'Cultivo', 'Moneda', 'Inversión inicial', 'Inquilino', 'Canon de alquiler'];
 
 $html = '<meta charset="utf-8">';
 $html .= '<table border="1" cellpadding="4">';
@@ -32,10 +33,9 @@ foreach ($columnas as $col) {
 $html .= '</tr>';
 
 $totalHas = 0;
-$totalInv = 0;
 foreach ($proyectos as $p) {
 	$totalHas += (int)$p['cantidadHas'];
-	$totalInv += (float)$p['inversion'];
+	$moneda = $p['monedaInversion'] ?: $p['monedaCanon'];
 	$html .= '<tr>';
 	$html .= '<td>' . $h($p['nombreProyecto']) . '</td>';
 	$html .= '<td>' . $h($p['tipoProyecto']) . '</td>';
@@ -47,12 +47,22 @@ foreach ($proyectos as $p) {
 	$html .= '<td align="right">' . ($p['cantidadCabezas'] !== null ? (int)$p['cantidadCabezas'] : '') . '</td>';
 	$html .= '<td>' . $h($p['nombreCategoria']) . '</td>';
 	$html .= '<td>' . $h($p['nombreCultivo']) . '</td>';
-	$html .= '<td align="right">' . ($p['inversion'] !== null ? '$' . number_format((float)$p['inversion'], 2, ',', '.') : '') . '</td>';
+	$html .= '<td>' . $h($p['monedaInversion'] ?? '') . '</td>';
+	$html .= '<td align="right">' . ($p['inversion'] !== null ? $h($p['monedaInversion'] ? montoMoneda($p['inversion'], $p['monedaInversion']) : number_format((float)$p['inversion'], 2, ',', '.')) : '') . '</td>';
+	$html .= '<td>' . $h($p['inquilino'] ?? '') . '</td>';
+	$html .= '<td align="right">' . ($p['canon'] !== null ? $h(montoMoneda($p['canon'], $p['monedaCanon']) . ' (' . $p['periodicidad'] . ')') : '') . '</td>';
 	$html .= '</tr>';
 }
-$html .= '<tr style="font-weight:bold;background-color:#e8f0e3;"><td colspan="3">Totales</td>'
-	. '<td align="right">' . $totalHas . '</td><td colspan="6"></td>'
-	. '<td align="right">$' . number_format($totalInv, 2, ',', '.') . '</td></tr>';
+$html .= '<tr style="font-weight:bold;background-color:#e8f0e3;"><td colspan="3">Total de hectáreas</td>'
+	. '<td align="right">' . $totalHas . '</td><td colspan="' . (count($columnas) - 4) . '"></td></tr>';
+// Inversion total discriminada por moneda (nunca se mezclan pesos con dolares)
+$conInversion = array_filter($proyectos, function ($p) { return $p['inversion'] !== null; });
+foreach (totalesPorMoneda($conInversion, 'inversion', 'monedaInversion') as $mon => $t) {
+	$etiqueta = $mon === '-' ? 'moneda no registrada' : strtolower(nombreMoneda($mon)) . ' (' . $mon . ')';
+	$html .= '<tr style="font-weight:bold;background-color:#e8f0e3;"><td colspan="10">Inversión total en ' . $h($etiqueta) . ' - ' . (int)$t['cantidad'] . ' proyecto' . ($t['cantidad'] === 1 ? '' : 's') . '</td>'
+		. '<td>' . $h($mon === '-' ? '' : $mon) . '</td>'
+		. '<td align="right">' . $h($mon === '-' ? number_format($t['total'], 2, ',', '.') : montoMoneda($t['total'], $mon)) . '</td><td colspan="2"></td></tr>';
+}
 $html .= '</table>';
 
 header("Expires: Mon, 26 Jul 2227 05:00:00 GMT");

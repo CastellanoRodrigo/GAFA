@@ -1,6 +1,8 @@
 <?php
 session_start();
 include ("./Modelo/Conexion.php");
+include_once('./Modelo/Auth.php');
+include_once('./Modelo/Notificaciones.php');
 if (empty($_SESSION["usuario"])) {
     header("location: login.php");
     exit;
@@ -17,8 +19,9 @@ if (!$row) {
     exit;
 }
 
-$nombre = $row['nombre'];
-$apellido = $row['apellido'];
+$nombre = nombrePropio($row['nombre']);
+$apellido = nombrePropio($row['apellido']);
+$cantAvisos = notificacionesListas($conexion) ? count(construirAvisos($conexion, configNotificaciones())) : 0;
 ?>
 
 <!DOCTYPE html>
@@ -68,7 +71,7 @@ $apellido = $row['apellido'];
                                 <a class="nav-link " href="./detalleSiembra.php">Detalle Siembra</a>
                             </li>
                             <li>
-                                <a class="nav-link " href="./detalleHacienda.php">Detalle Hacienda</a>
+                                <a class="nav-link " href="./detalleHacienda.php">Detalle Hacienda</a></li><li><a class="nav-link " href="./detalleAlquiler.php">Detalle Alquiler</a></li><li><a class="nav-link " href="./alquileres.php">Alquileres y cobros</a>
                             </li>
 							<li>
                                 <a class="nav-link " href="./todosLosProyectos.php">Listado de Proyectos</a>
@@ -114,6 +117,7 @@ $apellido = $row['apellido'];
                             </li>
                         </ul>
                     </li>
+					<li class="nav-item"><a href="./avisos.php" class="nav-link">Avisos<?php if ($cantAvisos > 0) { ?> <span class="badge-avisos"><?php echo (int)$cantAvisos; ?></span><?php } ?></a></li>
 					<!-- <li class="nav-item">
 						<a href="./nosotros.php" class="nav-link " aria-current="page" style="color: #0a6111;">¿Quiénes somos?</a>
 					</li> -->
@@ -121,7 +125,7 @@ $apellido = $row['apellido'];
             </div>
             <div class="exit">
 				<div class="exit-name">
-				<p><svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 448 512"><path d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3C0 498.7 13.3 512 29.7 512H418.3c16.4 0 29.7-13.3 29.7-29.7C448 383.8 368.2 304 269.7 304H178.3z"/></svg>&nbsp<?php echo $nombre." ".$apellido;?></p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 448 512"><path d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3C0 498.7 13.3 512 29.7 512H418.3c16.4 0 29.7-13.3 29.7-29.7C448 383.8 368.2 304 269.7 304H178.3z"/></svg>&nbsp<?php echo htmlspecialchars($nombre." ".$apellido, ENT_QUOTES, 'UTF-8');?></p>
 				</div>
 				<div class="exit-exit">
 					<a href="./login.php">
@@ -171,7 +175,7 @@ $apellido = $row['apellido'];
 				<div class="button">
                     <div class=".text-light">
                         <?php
-                        echo $nombre." ".$apellido;
+                        echo htmlspecialchars($nombre." ".$apellido, ENT_QUOTES, 'UTF-8');
                         ?>
                     </div>
 			</div>
@@ -203,6 +207,9 @@ $apellido = $row['apellido'];
 							<a href="./altaProyectos.php">Alta Proyecto</a>
 							<a href="./detalleSiembra.php">Detalle siembra</a>
 							<a href="./detalleHacienda.php">Detalle Hacienda</a>
+							<a href="./detalleAlquiler.php">Detalle Alquiler</a>
+							<a href="./alquileres.php">Alquileres y cobros</a>
+							<a href="./avisos.php">Avisos de vencimientos</a>
 							<a href="./todosLosProyectos.php">Listado de proyectos</a>
 						</div>
 

@@ -2,19 +2,17 @@
 <?php
 include('./Template/Cabecera.php');
 include('./Modelo/Conexion.php');
-include('./Modelo/Auth.php');
-include('./Modelo/Compras.php');
+include_once('./Modelo/Auth.php');
+include_once('./Modelo/Compras.php');
+include_once('./Modelo/Moneda.php');
 
 $f = filtrosCompras($_GET);
 $compras = consultarCompras($conexion, $f);
 $proveedores = mysqli_query($conexion, "SELECT id_Proveedor, proveedor FROM proveedores ORDER BY proveedor");
 
-// Totales por moneda (no se pueden sumar pesos con dolares)
-$totales = [];
-foreach ($compras as $c) {
-    $mon = $c['moneda'] ?? '-';
-    $totales[$mon] = ($totales[$mon] ?? 0) + (float)$c['importeTotal'];
-}
+// Totales discriminados por moneda (nunca se suman pesos con dolares)
+$totales = totalesPorMoneda($compras, 'importeTotal');
+$netos = totalesPorMoneda($compras, 'importeNeto');
 $qs = http_build_query(array_filter($f, function ($v) { return $v !== '' && $v !== 0; }));
 ?>
 <center>
@@ -50,15 +48,23 @@ $qs = http_build_query(array_filter($f, function ($v) { return $v !== '' && $v !
 
     <div class="barra-listado">
         <span><b><?php echo count($compras); ?></b> compra<?php echo count($compras) === 1 ? '' : 's'; ?></span>
-        <?php foreach ($totales as $mon => $suma) { ?>
-        <span class="chip-total"><?php echo e($mon); ?> <b>$<?php echo number_format($suma, 2, ',', '.'); ?></b></span>
-        <?php } ?>
         <span class="barra-acciones">
             <a href="./altaCompras.php" class="btn btn-success">Cargar compra</a>
             <a href="./asignarCompra.php" class="btn btn-outline-success">Asignar compras</a>
             <a href="./Exportar/ExcelCompras.php<?php echo $qs ? '?' . e($qs) : ''; ?>" class="btn btn-outline-success">Exportar a Excel</a>
         </span>
     </div>
+
+    <?php if ($compras) { ?>
+    <div class="resumen-alquiler">
+        <?php foreach ($totales as $mon => $t) { ?>
+        <div class="tarjeta-resumen <?php echo $mon === 'USD' ? 'usd' : 'ars'; ?>">
+            <span class="num"><?php echo e(montoMoneda($t['total'], $mon)); ?></span>
+            <span>Total en <?php echo e(strtolower(nombreMoneda($mon))); ?> (<?php echo chipMoneda($mon); ?>) · <?php echo (int)$t['cantidad']; ?> compra<?php echo $t['cantidad'] === 1 ? '' : 's'; ?> · neto <?php echo e(montoMoneda($netos[$mon]['total'], $mon)); ?></span>
+        </div>
+        <?php } ?>
+    </div>
+    <?php } ?>
 
     <?php if (!$compras) { ?>
     <p class="sin-datos">No hay compras para mostrar<?php echo hayFiltrosCompras($f) ? ' con esos filtros' : ''; ?>.</p>
@@ -84,9 +90,9 @@ $qs = http_build_query(array_filter($f, function ($v) { return $v !== '' && $v !
             <td class="col-factura"><?php echo e($c['tipoFactura']); ?> <?php echo e(str_pad((string)$c['puntoDeVenta'], 4, '0', STR_PAD_LEFT)); ?>-<?php echo e(str_pad((string)$c['nroFactura'], 8, '0', STR_PAD_LEFT)); ?></td>
             <td><?php echo e($c['proveedor']); ?></td>
             <td><?php echo (int)$c['id_TipoCompra'] === 2 && $c['nombreProyecto'] ? e($c['nombreProyecto']) : '<span class="chip-general">General</span>'; ?></td>
-            <td><?php echo e($c['moneda']); ?></td>
-            <td class="nowrap" style="text-align:right;">$<?php echo number_format((float)$c['importeNeto'], 2, ',', '.'); ?></td>
-            <td class="nowrap" style="text-align:right;"><b>$<?php echo number_format((float)$c['importeTotal'], 2, ',', '.'); ?></b></td>
+            <td><?php echo chipMoneda($c['moneda']); ?></td>
+            <td class="nowrap" style="text-align:right;"><?php echo e(montoMoneda($c['importeNeto'], $c['moneda'])); ?></td>
+            <td class="nowrap" style="text-align:right;"><b><?php echo e(montoMoneda($c['importeTotal'], $c['moneda'])); ?></b></td>
             <td><?php echo e($c['formaPago']); ?></td>
             <td class="text-center text-nowrap"><a class="btn btn-sm btn-outline-success" href="./detalleCompra.php?no=<?php echo (int)$c['id_Compras']; ?>">Ver</a></td>
         </tr>

@@ -1,6 +1,6 @@
 <?php
 include('./Modelo/Conexion.php');
-include('./Modelo/Auth.php');
+include_once('./Modelo/Auth.php');
 requerirLogin();
 
 // Procesar la asignacion ANTES de imprimir nada (para poder redirigir)
@@ -45,7 +45,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
-include('./Modelo/Compras.php');
+include_once('./Modelo/Compras.php');
+include_once('./Modelo/Moneda.php');
 $sinAsignar = array_values(array_filter(
     consultarCompras($conexion, filtrosCompras([])),
     function ($c) { return (int)$c['id_TipoCompra'] !== 2; }
@@ -82,7 +83,7 @@ $proyectos = mysqli_fetch_all(mysqli_query($conexion,
             <td class="nowrap"><?php echo e(date('d/m/Y', strtotime($c['fecha']))); ?></td>
             <td class="col-factura"><?php echo e($c['tipoFactura']); ?> <?php echo e(str_pad((string)$c['puntoDeVenta'], 4, '0', STR_PAD_LEFT)); ?>-<?php echo e(str_pad((string)$c['nroFactura'], 8, '0', STR_PAD_LEFT)); ?></td>
             <td><?php echo e($c['proveedor']); ?></td>
-            <td class="nowrap" style="text-align:right;"><b><?php echo e($c['moneda']); ?> $<?php echo number_format((float)$c['importeTotal'], 2, ',', '.'); ?></b></td>
+            <td class="nowrap" style="text-align:right;"><b><?php echo e(montoMoneda($c['importeTotal'], $c['moneda'])); ?></b> <?php echo chipMoneda($c['moneda']); ?></td>
             <td>
                 <form method="POST" action="./asignarCompra.php" style="display:flex; gap:8px; align-items:center;">
                     <input type="hidden" name="compra" value="<?php echo (int)$c['id_Compras']; ?>">

@@ -1,6 +1,6 @@
 <?php
 include('./Modelo/Conexion.php');
-include('./Modelo/Auth.php');
+include_once('./Modelo/Auth.php');
 requerirAdmin($conexion);
 
 $id = (int)($_POST['id'] ?? 0);

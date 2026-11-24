@@ -2,7 +2,7 @@
 <?php
 include('./Template/Cabecera.php');
 include('./Modelo/Conexion.php');
-include('./Modelo/Auth.php');
+include_once('./Modelo/Auth.php');
 ?>
 <center>
     <h1>USUARIOS</h1>
@@ -28,8 +28,8 @@ include('./Modelo/Auth.php');
         while ($u = mysqli_fetch_assoc($consulta)) { ?>
         <tr>
             <td style="padding:5px;"><?php echo e($u['usuario']); ?></td>
-            <td style="padding:5px;"><?php echo e($u['nombre']); ?></td>
-            <td style="padding:5px;"><?php echo e($u['apellido']); ?></td>
+            <td style="padding:5px;"><?php echo e(nombrePropio($u['nombre'])); ?></td>
+            <td style="padding:5px;"><?php echo e(nombrePropio($u['apellido'])); ?></td>
             <td style="padding:5px;"><?php echo e($u['tipo']); ?></td>
             <td style="padding:5px;"><?php echo e($u['estadoUsuario']); ?></td>
             <td class="text-center text-nowrap"><a class="btn btn-sm btn-outline-success" href="./detalleUsuario.php?no=<?php echo (int)$u['id_usuario']; ?>">Modificar</a></td>

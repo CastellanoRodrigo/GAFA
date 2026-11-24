@@ -337,6 +337,32 @@ $id = $consulta[0];
         <?php }?>
 
         <?php $valorProyecto = $consulta[3]; ?>
+        <?php if ($valorProyecto == 3) { // Alquiler
+            include_once('./Modelo/Auth.php');
+            include_once('./Modelo/Alquileres.php');
+            $contratoAlq = null;
+            if (tablasAlquilerListas($conexion)) {
+                $stAlq = $conexion->prepare("SELECT da.id_DetalleAlquiler, da.inquilino, da.fechaInicio, da.fechaFin, da.canon, da.periodicidad, m.moneda
+                    FROM detallealquiler da LEFT JOIN moneda m ON m.id_Moneda = da.id_Moneda WHERE da.id_Proyecto = ?");
+                $idProyAlq = (int)$consulta[0];
+                $stAlq->bind_param("i", $idProyAlq);
+                $stAlq->execute();
+                $contratoAlq = $stAlq->get_result()->fetch_assoc();
+                $stAlq->close();
+            } ?>
+        <div class="centrado--form--info">
+            <div><h4>-Contrato de alquiler:</h4></div>
+            <div>
+            <?php if ($contratoAlq) { ?>
+                <p><?php echo e($contratoAlq['inquilino']); ?> · <?php echo e(fechaCorta($contratoAlq['fechaInicio'])); ?> al <?php echo e(fechaCorta($contratoAlq['fechaFin'])); ?><br>
+                <b><?php echo e(montoMoneda($contratoAlq['canon'], $contratoAlq['moneda'])); ?></b> <?php echo chipMoneda($contratoAlq['moneda']); ?> (<?php echo e($contratoAlq['periodicidad']); ?>)
+                <a class="btn btn-sm btn-success" href="./cobrosAlquiler.php?no=<?php echo (int)$contratoAlq['id_DetalleAlquiler']; ?>">Ver cobros</a></p>
+            <?php } else { ?>
+                <p>Sin contrato cargado. <a class="btn btn-sm btn-success" href="./detalleAlquiler.php">Cargar contrato</a></p>
+            <?php } ?>
+            </div>
+        </div>
+        <?php } ?>
 
         <div class="centrado--form--info">
             <div>

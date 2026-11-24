@@ -51,3 +51,9 @@ INSERT INTO compraproyecto_nueva (id_CompraProyecto, id_Compras, id_Proyecto, id
 SELECT id_CompraProyecto, id_Compras, id_Proyecto, IF(tipoCompra = 'Asignada', 2, 1) FROM compraproyecto;
 DROP TABLE compraproyecto;
 RENAME TABLE compraproyecto_nueva TO compraproyecto;
+
+-- Moneda de la inversion en los detalles de siembra y hacienda (las usa detalleProyecto.php y agrDetalle*.php).
+ALTER TABLE detallehacienda ADD COLUMN id_Moneda INT NOT NULL DEFAULT 1, ADD COLUMN tipoCambio DECIMAL(10,2) NOT NULL DEFAULT 1;
+ALTER TABLE detallesiembra ADD COLUMN id_Moneda INT NOT NULL DEFAULT 1, ADD COLUMN tipoCambio DECIMAL(10,2) NOT NULL DEFAULT 1;
+-- Un proyecto de siembra en dolares, para probar totales discriminados por moneda.
+UPDATE detallesiembra SET id_Moneda = 2, tipoCambio = 1000 WHERE id_Proyecto = 1;

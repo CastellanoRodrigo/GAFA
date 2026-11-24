@@ -1,6 +1,7 @@
 <?php
 include('./Template/Cabecera.php');
 include('./Modelo/Conexion.php');
+include_once('./Modelo/Moneda.php');
 
 error_reporting(0);
 
@@ -183,7 +184,7 @@ $id = $consulta[0];
             <div>
                 <p><?php 
                     $importeNeto = number_format($consulta[10], 2, ',','.');
-                    echo "$".$importeNeto;?>
+                    echo htmlspecialchars(simboloMoneda($moneda), ENT_QUOTES, 'UTF-8')." ".$importeNeto." ".chipMoneda($moneda);?>
                 </p>
             </div>
         </div>
@@ -204,7 +205,7 @@ $id = $consulta[0];
             <div>
                 <p><?php 
                     $importeTotal = number_format($consulta[12], 2, ',','.');
-                    echo "$".$importeTotal;?>
+                    echo "<b>".htmlspecialchars(simboloMoneda($moneda), ENT_QUOTES, 'UTF-8')." ".$importeTotal."</b> ".chipMoneda($moneda);?>
                 </p>
             </div>
         </div>

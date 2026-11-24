@@ -2,8 +2,8 @@
 <?php
 include('./Template/Cabecera.php');
 include('./Modelo/Conexion.php');
-include('./Modelo/Auth.php');
-include('./Modelo/Proyectos.php');
+include_once('./Modelo/Auth.php');
+include_once('./Modelo/Proyectos.php');
 
 $f = filtrosProyectos($_GET);
 $proyectos = consultarProyectos($conexion, $f);
@@ -11,6 +11,7 @@ $tiposProy = mysqli_fetch_all(mysqli_query($conexion, "SELECT id_tipoProyecto, t
 $estadosProy = mysqli_fetch_all(mysqli_query($conexion, "SELECT id_EstadoProyecto, estado FROM estadoproyecto ORDER BY id_EstadoProyecto"), MYSQLI_ASSOC);
 $parcelas = mysqli_fetch_all(mysqli_query($conexion, "SELECT id_Parcela FROM parcela ORDER BY id_Parcela"), MYSQLI_ASSOC);
 
+$invMon = totalesPorMoneda(array_filter($proyectos, function ($p) { return $p['inversion'] !== null && $p['monedaInversion']; }), 'inversion', 'monedaInversion');
 $totalHas = array_sum(array_map(function ($p) { return (int)$p['cantidadHas']; }, $proyectos));
 $qs = http_build_query(array_filter($f, function ($v) { return $v !== '' && $v !== 0; }));
 ?>
@@ -64,6 +65,17 @@ $qs = http_build_query(array_filter($f, function ($v) { return $v !== '' && $v !
         </span>
     </div>
 
+    <?php if ($invMon) { ?>
+    <div class="resumen-alquiler">
+        <?php foreach ($invMon as $mon => $t) { ?>
+        <div class="tarjeta-resumen <?php echo $mon === 'USD' ? 'usd' : 'ars'; ?>">
+            <span class="num"><?php echo e(montoMoneda($t['total'], $mon)); ?></span>
+            <span>Inversión inicial en <?php echo e(strtolower(nombreMoneda($mon))); ?> (<?php echo chipMoneda($mon); ?>) · <?php echo (int)$t['cantidad']; ?> proyecto<?php echo $t['cantidad'] === 1 ? '' : 's'; ?></span>
+        </div>
+        <?php } ?>
+    </div>
+    <?php } ?>
+
     <?php if (!$proyectos) { ?>
     <p class="sin-datos">No hay proyectos para mostrar<?php echo hayFiltrosProyectos($f) ? ' con esos filtros' : ''; ?>.</p>
     <?php } else { ?>
@@ -74,6 +86,7 @@ $qs = http_build_query(array_filter($f, function ($v) { return $v !== '' && $v !
             <th>Parcela</th>
             <th>Tipo</th>
             <th style="text-align:right;">Has</th>
+            <th style="text-align:right;">Inversión / canon</th>
             <th>Estado</th>
             <th style="text-align:center;">Detalle</th>
         </tr>
@@ -85,8 +98,26 @@ $qs = http_build_query(array_filter($f, function ($v) { return $v !== '' && $v !
             <td>N° <?php echo (int)$p['id_Parcela']; ?></td>
             <td><?php echo e($p['tipoProyecto']); ?></td>
             <td style="text-align:right;"><?php echo (int)$p['cantidadHas']; ?></td>
+            <td class="nowrap" style="text-align:right;">
+                <?php if ($p['canon'] !== null) { ?>
+                    <?php echo e(montoMoneda($p['canon'], $p['monedaCanon'])); ?> <?php echo chipMoneda($p['monedaCanon']); ?><br><small><?php echo e($p['periodicidad']); ?></small>
+                <?php } elseif ($p['inversion'] !== null && $p['monedaInversion']) { ?>
+                    <?php echo e(montoMoneda($p['inversion'], $p['monedaInversion'])); ?> <?php echo chipMoneda($p['monedaInversion']); ?>
+                <?php } elseif ($p['inversion'] !== null) { ?>
+                    <?php echo e(number_format((float)$p['inversion'], 2, ',', '.')); ?>
+                <?php } else { ?>-<?php } ?>
+            </td>
             <td><?php echo e($p['estado']); ?></td>
-            <td class="text-center text-nowrap"><a class="btn btn-sm btn-outline-success" href="./detalleProyecto.php?no=<?php echo (int)$p['id_Proyecto']; ?>">Ver / modificar</a></td>
+            <td class="text-center text-nowrap">
+                <a class="btn btn-sm btn-outline-success" href="./detalleProyecto.php?no=<?php echo (int)$p['id_Proyecto']; ?>">Ver / modificar</a>
+                <?php if ((int)$p['id_TipoProyecto'] === 3) { ?>
+                    <?php if ($p['id_DetalleAlquiler']) { ?>
+                    <a class="btn btn-sm btn-success" href="./cobrosAlquiler.php?no=<?php echo (int)$p['id_DetalleAlquiler']; ?>">Cobros</a>
+                    <?php } else { ?>
+                    <a class="btn btn-sm btn-success" href="./detalleAlquiler.php">Cargar contrato</a>
+                    <?php } ?>
+                <?php } ?>
+            </td>
         </tr>
         <?php } ?>
         </tbody>
