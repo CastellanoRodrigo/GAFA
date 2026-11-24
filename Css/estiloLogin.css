@@ -21,7 +21,7 @@ body {
     font-family: 'Nunito', Arial, sans-serif;
     background-color: #1f3d23;
     background-image:
-        linear-gradient(rgba(15, 35, 18, .55), rgba(15, 35, 18, .72)),
+        linear-gradient(rgba(12, 30, 14, .88) 0%, rgba(12, 30, 14, .78) 40%, rgba(12, 30, 14, .72) 100%),
         url('../imgs/casa0.jpg');
     background-size: cover;
     background-position: center 62%;
@@ -45,13 +45,11 @@ body {
 
 .form-login .logo {
     display: block;
-    width: 84px;
-    height: 84px;
-    object-fit: contain;
-    margin: 0 auto 10px;
-    border-radius: 50%;
-    background: rgba(255, 253, 248, .9);
-    padding: 6px;
+    width: 100%;
+    max-width: 270px;
+    height: auto;
+    margin: 0 auto 22px;
+    filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .7)) drop-shadow(0 6px 16px rgba(0, 0, 0, .5));
 }
 
 .form-login h5 {

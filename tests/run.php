@@ -103,6 +103,35 @@ $r = peticion("$base/Exportar/ExcelCompras.php", ['sql' => 'DROP TABLE usuarios'
 prueba('exportacion ignora SQL enviado por el cliente', $r['code'] === 200 && strpos(peticion("$base/usuarios.php", null, $cookieAdmin)['body'], 'admin') !== false);
 prueba('verCompras sin sesion redirige a login', strpos(peticion("$base/verCompras.php")['loc'], 'login.php') !== false);
 
+// 4a-2. Asignar compras
+$r = peticion("$base/asignarCompra.php", null, $cookieAdmin);
+prueba('asignarCompra responde 200 sin errores PHP', $r['code'] === 200 && !preg_match('/Fatal error|Warning:|Notice:/', $r['body']));
+prueba('asignarCompra lista la compra general pendiente', strpos($tabla($r['body']), '10.101.010,00') !== false);
+prueba('asignarCompra sin sesion redirige a login', strpos(peticion("$base/asignarCompra.php", ['compra' => 2, 'proyecto' => 5])['loc'], 'login.php') !== false);
+prueba('asignar a proyecto inexistente -> error', strpos(peticion("$base/asignarCompra.php", ['compra' => 2, 'proyecto' => 9999], $cookieAdmin)['loc'], '?error') !== false);
+prueba('asignar compra inexistente -> error', strpos(peticion("$base/asignarCompra.php", ['compra' => 9999, 'proyecto' => 5], $cookieAdmin)['loc'], '?error') !== false);
+prueba('asignar compra a proyecto -> ok', strpos(peticion("$base/asignarCompra.php", ['compra' => 2, 'proyecto' => 5], $cookieAdmin)['loc'], '?ok') !== false);
+prueba('verCompras muestra el proyecto asignado', strpos($tabla(peticion("$base/verCompras.php", null, $cookieAdmin)['body']), 'Soja 2023') !== false);
+prueba('la compra asignada sale de la lista de pendientes', strpos($tabla(peticion("$base/asignarCompra.php", null, $cookieAdmin)['body']), '10.101.010,00') === false);
+prueba('no se puede reasignar una compra ya asignada', strpos(peticion("$base/asignarCompra.php", ['compra' => 2, 'proyecto' => 4], $cookieAdmin)['loc'], '?error') !== false);
+prueba('asignar con valores inyectados no rompe', strpos(peticion("$base/asignarCompra.php", ['compra' => "3 OR 1=1", 'proyecto' => "5; DROP TABLE compras"], $cookieAdmin)['loc'], 'asignarCompra.php') !== false
+    && strpos(peticion("$base/verCompras.php", null, $cookieAdmin)['body'], 'Fedea') !== false);
+
+// 4a-3. Proyectos: listado con filtros y exportacion
+$r = peticion("$base/todosLosProyectos.php", null, $cookieAdmin);
+prueba('todosLosProyectos responde sin errores PHP', $r['code'] === 200 && !preg_match('/Fatal error|Warning:|Notice:/', $r['body']) && substr_count($tabla($r['body']), '<tr>') === 7);
+$r = peticion("$base/todosLosProyectos.php?tipo=1", null, $cookieAdmin);
+prueba('todosLosProyectos filtra por tipo', substr_count($tabla($r['body']), '<tr>') === 3 && strpos($tabla($r['body']), 'Soja 2023') === false);
+$r = peticion("$base/todosLosProyectos.php?q=" . urlencode("' OR '1'='1"), null, $cookieAdmin);
+prueba('todosLosProyectos con busqueda inyectada no lista todo', $r['code'] === 200 && substr_count($tabla($r['body']), '<tr>') === 0);
+$r = peticion("$base/Exportar/ExcelProyectos.php", null, $cookieAdmin);
+prueba('exportar proyectos genera Excel con datos y sin fechas 1970', $r['code'] === 200 && strpos($r['body'], 'Soja 2023') !== false && strpos($r['body'], '1970') === false);
+$r = peticion("$base/Exportar/ExcelProyectos.php?tipo=1", null, $cookieAdmin);
+prueba('exportar proyectos respeta los filtros', strpos($r['body'], 'Aberdinangus') !== false && strpos($r['body'], 'Soja 2023') === false);
+$r = peticion("$base/Exportar/ExcelProyectosFiltrado.php", ['sql' => 'DROP TABLE usuarios', 'tipo' => 1], $cookieAdmin);
+prueba('exportar proyectos filtrado ignora SQL del cliente', $r['code'] === 200 && strpos($r['body'], 'Aberdinangus') !== false
+    && strpos(peticion("$base/usuarios.php", null, $cookieAdmin)['body'], 'admin') !== false);
+
 // 4b. Consultas preparadas en agr* y detalle*
 foreach (['detalleCategoria.php?no=1', 'detalleProveedor.php?no=1', 'detalleProyecto.php?no=1'] as $p) {
     $r = peticion("$base/$p", null, $cookieAdmin);

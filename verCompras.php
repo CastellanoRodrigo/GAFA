@@ -20,7 +20,7 @@ $qs = http_build_query(array_filter($f, function ($v) { return $v !== '' && $v !
 <center>
     <h1>COMPRAS CARGADAS</h1>
 
-    <form method="GET" action="./verCompras.php" class="filtros-compras">
+    <form method="GET" action="./verCompras.php" class="filtros-listado">
         <div>
             <label for="desde">Desde</label>
             <input type="date" name="desde" id="desde" value="<?php echo e($f['desde']); ?>">
@@ -40,7 +40,7 @@ $qs = http_build_query(array_filter($f, function ($v) { return $v !== '' && $v !
         </div>
         <div>
             <label for="q">Factura o detalle</label>
-            <input type="text" name="q" id="q" value="<?php echo e($f['q']); ?>" placeholder="Buscar...">
+            <input type="text" name="q" id="q" class="campo-ancho" value="<?php echo e($f['q']); ?>" placeholder="Buscar...">
         </div>
         <div class="filtros-botones">
             <button type="submit" class="btn btn-success">Filtrar</button>
@@ -48,13 +48,14 @@ $qs = http_build_query(array_filter($f, function ($v) { return $v !== '' && $v !
         </div>
     </form>
 
-    <div class="barra-compras">
+    <div class="barra-listado">
         <span><b><?php echo count($compras); ?></b> compra<?php echo count($compras) === 1 ? '' : 's'; ?></span>
         <?php foreach ($totales as $mon => $suma) { ?>
         <span class="chip-total"><?php echo e($mon); ?> <b>$<?php echo number_format($suma, 2, ',', '.'); ?></b></span>
         <?php } ?>
         <span class="barra-acciones">
             <a href="./altaCompras.php" class="btn btn-success">Cargar compra</a>
+            <a href="./asignarCompra.php" class="btn btn-outline-success">Asignar compras</a>
             <a href="./Exportar/ExcelCompras.php<?php echo $qs ? '?' . e($qs) : ''; ?>" class="btn btn-outline-success">Exportar a Excel</a>
         </span>
     </div>
@@ -66,7 +67,7 @@ $qs = http_build_query(array_filter($f, function ($v) { return $v !== '' && $v !
         <thead>
         <tr>
             <th>Fecha</th>
-            <th>Factura</th>
+            <th class="col-factura">Factura</th>
             <th>Proveedor</th>
             <th>Destino</th>
             <th>Moneda</th>
@@ -79,13 +80,13 @@ $qs = http_build_query(array_filter($f, function ($v) { return $v !== '' && $v !
         <tbody>
         <?php foreach ($compras as $c) { ?>
         <tr>
-            <td><?php echo e(date('d/m/Y', strtotime($c['fecha']))); ?></td>
-            <td><?php echo e($c['tipoFactura'] . ' ' . str_pad((string)$c['puntoDeVenta'], 4, '0', STR_PAD_LEFT) . '-' . $c['nroFactura']); ?></td>
+            <td class="nowrap"><?php echo e(date('d/m/Y', strtotime($c['fecha']))); ?></td>
+            <td class="col-factura"><?php echo e($c['tipoFactura']); ?> <?php echo e(str_pad((string)$c['puntoDeVenta'], 4, '0', STR_PAD_LEFT)); ?>-<?php echo e(str_pad((string)$c['nroFactura'], 8, '0', STR_PAD_LEFT)); ?></td>
             <td><?php echo e($c['proveedor']); ?></td>
             <td><?php echo (int)$c['id_TipoCompra'] === 2 && $c['nombreProyecto'] ? e($c['nombreProyecto']) : '<span class="chip-general">General</span>'; ?></td>
             <td><?php echo e($c['moneda']); ?></td>
-            <td style="text-align:right;">$<?php echo number_format((float)$c['importeNeto'], 2, ',', '.'); ?></td>
-            <td style="text-align:right;"><b>$<?php echo number_format((float)$c['importeTotal'], 2, ',', '.'); ?></b></td>
+            <td class="nowrap" style="text-align:right;">$<?php echo number_format((float)$c['importeNeto'], 2, ',', '.'); ?></td>
+            <td class="nowrap" style="text-align:right;"><b>$<?php echo number_format((float)$c['importeTotal'], 2, ',', '.'); ?></b></td>
             <td><?php echo e($c['formaPago']); ?></td>
             <td class="text-center text-nowrap"><a class="btn btn-sm btn-outline-success" href="./detalleCompra.php?no=<?php echo (int)$c['id_Compras']; ?>">Ver</a></td>
         </tr>
@@ -94,27 +95,6 @@ $qs = http_build_query(array_filter($f, function ($v) { return $v !== '' && $v !
     </table>
     <?php } ?>
 </center>
-
-<style>
-    .filtros-compras {
-        width: min(1200px, 94vw);
-        display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-end;
-        background: var(--papel); border: 1px solid var(--borde); border-radius: var(--radio);
-        box-shadow: var(--sombra); padding: 16px 20px; margin: 0 auto 16px; text-align: left;
-    }
-    .filtros-compras > div { display: flex; flex-direction: column; gap: 4px; }
-    .filtros-compras label { font-weight: 700; color: #4a3517; font-size: .9rem; }
-    .filtros-compras select, .filtros-compras input { width: 200px !important; }
-    .filtros-botones { flex-direction: row !important; gap: 8px !important; }
-    .barra-compras {
-        width: min(1200px, 94vw); margin: 0 auto 14px;
-        display: flex; flex-wrap: wrap; gap: 12px; align-items: center; text-align: left;
-    }
-    .barra-acciones { margin-left: auto; display: flex; gap: 8px; }
-    .chip-total { background: var(--verde-claro); color: var(--verde-oscuro); border-radius: 999px; padding: 4px 14px; }
-    .chip-general { background: #efe7d0; color: #4a3517; border-radius: 999px; padding: 2px 10px; font-size: .85rem; font-weight: 700; }
-    .sin-datos { padding: 40px 0; color: var(--texto-suave); font-size: 1.1rem; }
-</style>
 <?php
 $conexion->close();
 include('./Template/Pie.php');

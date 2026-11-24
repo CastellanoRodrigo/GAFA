@@ -25,7 +25,7 @@ $apellido = $row['apellido'];
 <html lang="es">
 <head>
 	<meta charset="UTF-8">
-	<link rel="shortcut icon" href="imgs/GAFA.png">
+	<link rel="shortcut icon" type="image/png" href="imgs/GAFA_icono_oscuro.png">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<meta http-equiv="X-UA-Compatible" content="ie=edge">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
@@ -43,7 +43,10 @@ $apellido = $row['apellido'];
 
 <header class="hea-pri" >
 	<div class="titPrincipal">
-		<h1>Don Juan</h1>
+		<a href="./inicio.php" class="marca" title="Ir al inicio">
+			<img src="imgs/GAFA_LOGO_oscuro.png" alt="GAFA - Ganadería y Agricultura de Fácil Administración">
+			<span class="marca-texto">Don Juan <small>S.R.L</small></span>
+		</a>
 	</div>
     <nav class="navbar navbar-expand-lg navbar-light" style="border-bottom: 1px solid #0a6111;">
         <div class="container-fluid navpri">

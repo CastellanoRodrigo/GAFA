@@ -13,16 +13,14 @@ session_destroy();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="shortcut icon" href="imgs/GAFA.png">
+    <link rel="shortcut icon" type="image/png" href="imgs/GAFA_icono_oscuro.png">
     <link rel="stylesheet" href="Css/estiloLogin.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <title>GAFA - Ingresar</title>
 </head>
 <body>
     <form action="Controlador/controlador_login.php" method="POST" class="form-login">
-        <img class="logo" src="imgs/GAFA.png" alt="GAFA">
-        <h5>GAFA</h5>
-        <p class="lema">Ganadería y Agricultura de Fácil Administración</p>
+        <img class="logo" src="imgs/GAFA_LOGO_lema_claro.png" alt="GAFA - Ganadería y Agricultura de Fácil Administración">
         <input class="cajas" type="text" name="usuario" placeholder="Usuario" required autofocus>
         <input class="cajas" type="password" name="password" placeholder="Contraseña" required>
         <input class="btn" type="submit" name="btningresar" value="Ingresar">

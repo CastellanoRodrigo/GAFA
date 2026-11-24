@@ -3,6 +3,7 @@ include('./Template/Cabecera.php');
 ?>
 <section class="portada">
     <div class="portada-contenido">
+        <img class="portada-logo" src="imgs/GAFA_LOGO_claro.png" alt="GAFA">
         <h1>Bienvenido/a, <?php echo htmlspecialchars($nombre . ' ' . $apellido, ENT_QUOTES, 'UTF-8'); ?></h1>
         <p>Ganadería y Agricultura de Fácil Administración. Todo el campo de Don Juan, ordenado en un solo lugar.</p>
     </div>
