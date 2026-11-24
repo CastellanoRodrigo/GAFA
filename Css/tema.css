@@ -218,6 +218,95 @@ a { transition: color .2s; }
 .acceso h3 { font-size: 1.15rem; margin: 0 0 4px; }
 .acceso p { color: var(--texto-suave); font-size: .92rem; }
 
+/* ==========================================================
+   Barra de menu de alto contraste (estilo portal corporativo)
+   Fondo verde oscuro solido, letra blanca en negrita.
+   ========================================================== */
+:root { --texto-suave: #4f4c43; }
+
+.hea-pri { background: var(--papel); border-bottom: none; box-shadow: 0 3px 14px rgba(0,0,0,.18); }
+.titPrincipal { padding: 8px 0 8px; background: var(--papel); }
+.titPrincipal h1 {
+	font-size: 1.7rem !important;
+	font-weight: 700;
+	color: var(--verde-oscuro) !important;
+}
+
+.hea-pri .navbar {
+	background: var(--verde-oscuro) !important;
+	border-bottom: 4px solid var(--trigo) !important;
+	padding: 0 16px;
+	min-height: 54px;
+}
+.hea-pri .navbar-nav { gap: 2px; }
+.hea-pri .nav-link {
+	color: #ffffff !important;
+	font-size: .95rem;
+	font-weight: 700;
+	letter-spacing: .6px;
+	text-transform: uppercase;
+	border-radius: 0;
+	padding: 17px 16px !important;
+	border-bottom: 4px solid transparent;
+	margin-bottom: -4px;
+}
+.hea-pri .nav-link:hover,
+.hea-pri .nav-link:focus,
+.hea-pri .nav-link.show {
+	background: rgba(255,255,255,.10) !important;
+	color: #ffffff !important;
+	border-bottom-color: var(--trigo);
+}
+.hea-pri .dropdown-toggle::after { border-top-color: var(--trigo); }
+
+/* Menus desplegables: fondo blanco, letra oscura bien legible */
+.hea-pri .dropdown-menu {
+	margin-top: 0 !important;
+	border: none !important;
+	border-top: 4px solid var(--trigo) !important;
+	border-radius: 0 0 12px 12px !important;
+	padding: 8px 0 !important;
+	min-width: 230px;
+	box-shadow: 0 14px 28px rgba(0,0,0,.25);
+}
+.hea-pri .dropdown-menu .nav-link {
+	color: #1b1b18 !important;
+	font-size: .95rem;
+	font-weight: 600;
+	letter-spacing: 0;
+	text-transform: none;
+	padding: 10px 22px !important;
+	margin: 0;
+	border-bottom: none;
+}
+.hea-pri .dropdown-menu .nav-link:hover {
+	background: var(--verde-claro) !important;
+	color: var(--verde-oscuro) !important;
+	box-shadow: inset 4px 0 0 var(--trigo);
+}
+
+/* Usuario y boton Salir sobre la barra oscura */
+.hea-pri .exit-name p, .hea-pri .exit-name svg { color: #ffffff !important; fill: #ffffff !important; font-weight: 700; }
+.hea-pri .exit .btn-outline-success {
+	color: #ffffff !important;
+	border: 2px solid #ffffff !important;
+	background: transparent !important;
+	padding: .3rem 1.1rem;
+}
+.hea-pri .exit .btn-outline-success:hover { background: var(--trigo) !important; border-color: var(--trigo) !important; color: #1b1b18 !important; }
+.hea-pri .navbar-toggler { border-color: rgba(255,255,255,.6); background: rgba(255,255,255,.9); margin: 8px 0; }
+
+/* Texto general mas oscuro y legible */
+body { color: #1f1e1a; }
+.labelInput label, .centrado--form--form label, .centrado--form--info h4 { color: #4a3517; font-size: 1rem; }
+h1, h2, h3, h4, h5 { color: #16301a; }
+
+@media (max-width: 991px) {
+	.hea-pri .navbar { padding: 6px 12px; }
+	.hea-pri .nav-link { padding: 12px 10px !important; border-bottom: none; margin: 0; }
+	.hea-pri .dropdown-menu { box-shadow: none; border-radius: 0 !important; background: rgba(255,255,255,.96); }
+}
+
 /* ---------- Adaptable a celular ---------- */
 @media (max-width: 768px) {
 	.centrado--form { padding: 18px !important; }

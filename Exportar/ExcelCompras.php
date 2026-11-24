@@ -1,82 +1,51 @@
 <?php
+// Exporta compras a Excel. Acepta filtros opcionales (desde, hasta, proveedor, q) por GET o POST.
+// Ya no recibe SQL del cliente.
 session_start();
 if (empty($_SESSION['usuario'])) {
 	http_response_code(403);
 	exit('Acceso denegado');
 }
 include('../Modelo/Conexion.php');
+include('../Modelo/Compras.php');
 
-?>
-<!DOCTYPE html>
-<html lang="es-es">
+$filtros = filtrosCompras($_POST + $_GET);
+$compras = consultarCompras($conexion, $filtros);
+$conPrefiltro = hayFiltrosCompras($filtros);
 
-<head>
-	<meta charset="utf-8">
-	<title>Contacto</title>
+$h = function ($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); };
 
-	<head>
+$arquivo = $conPrefiltro ? 'comprasFiltradas.xls' : 'compras.xls';
 
-	<body>
-		<?php
-		// Definimos el archivo exportado
-		$arquivo = 'compras.xls';
+$html = '<meta charset="utf-8">';
+$html .= '<table border="1">';
+$html .= '<tr><td colspan="8">' . ($conPrefiltro ? 'Lista de compras filtradas' : 'Lista de compras') . '</td></tr>';
+$html .= '<tr>';
+foreach (['Fecha', 'NroFactura', 'Proveedor', 'Moneda', 'ImporteNeto', 'IVA', 'Total', 'FormaPago'] as $col) {
+	$html .= '<td><b>' . $col . '</b></td>';
+}
+$html .= '</tr>';
 
-		// Crear la tabla HTML
-		$html = '';
-		$html .= '<table border="1">';
-		$html .= '<tr>';
-		$html .= '<td colspan="4">Lista de compras</tr>';
-		$html .= '</tr>';
+foreach ($compras as $c) {
+	$html .= '<tr>';
+	$html .= '<td>' . $h(date('d-m-Y', strtotime($c['fecha']))) . '</td>';
+	$html .= '<td>' . $h($c['nroFactura']) . '</td>';
+	$html .= '<td>' . $h($c['proveedor']) . '</td>';
+	$html .= '<td>' . $h($c['moneda']) . '</td>';
+	$html .= '<td>$' . number_format((float)$c['importeNeto'], 2, ',', '.') . '</td>';
+	$html .= '<td>' . $h($c['IVA']) . '%</td>';
+	$html .= '<td>$' . number_format((float)$c['importeTotal'], 2, ',', '.') . '</td>';
+	$html .= '<td>' . $h($c['formaPago']) . '</td>';
+	$html .= '</tr>';
+}
+$html .= '</table>';
 
-
-		$html .= '<tr>';
-		$html .= '<td><b>Fecha</b></td>';
-		$html .= '<td><b>NroFactura</b></td>';
-		$html .= '<td><b>Proveedor</b></td>';
-		$html .= '<td><b>Moneda</b></td>';
-		$html .= '<td><b>ImporteNeto</b></td>';
-		$html .= '<td><b>IVA</b></td>';
-		$html .= '<td><b>Total</b></td>';
-		$html .= '<td><b>FormaPago</b></td>';
-		$html .= '</tr>';
-
-		//Seleccionar todos los elementos de la tabla
-	/* 	$result_msg_contatos = "SELECT * FROM contactos"; */
-		$variable = trim($_POST['sql'] ?? '');
-		// Medida provisoria: solo una sentencia SELECT (ver nota: lo ideal es recibir filtros y no SQL)
-		if (!preg_match('/^SELECT\s/i', $variable) || strpos($variable, ';') !== false) {
-			http_response_code(400);
-			exit('Consulta no permitida');
-		}
-		$resultado_msg_contatos = mysqli_query($conexion, $variable);
-
-		while ($row_msg_contatos = mysqli_fetch_assoc($resultado_msg_contatos)) {
-            $fec = date("d-m-Y", strtotime($row_msg_contatos['fecha']));
-            $impNeto = number_format($row_msg_contatos['importeNeto'], 2, ',','.');
-            $total = number_format($row_msg_contatos['importeTotal'], 2, ',','.');
-
-			$html .= '<tr>';
-			$html .= '<td>' . $fec. '</td>';
-			$html .= '<td>' . $row_msg_contatos["nroFactura"] . '</td>';
-			$html .= '<td>' . $row_msg_contatos["proveedor"] . '</td>';
-            $html .= '<td>' . $row_msg_contatos["moneda"]. '</td>';
-            $html .= '<td>$' . $impNeto. '</td>';
-			$html .= '<td>' . $row_msg_contatos["IVA"] . '%</td>';
-            $html .= '<td>$' . $total. '</td>';
-            $html .= '<td>' . $row_msg_contatos["formaPago"]. '</td>';
-			$html .= '</tr>';
-		}
-		// Configuración en la cabecera
-		header("Expires: Mon, 26 Jul 2227 05:00:00 GMT");
-		header("Last-Modified: " . gmdate("D,d M YH:i:s") . " GMT");
-		header("Cache-Control: no-cache, must-revalidate");
-		header("Pragma: no-cache");
-		header("Content-type: application/x-msexcel");
-		header("Content-Disposition: attachment; filename=\"{$arquivo}\"");
-		header("Content-Description: PHP Generado Data");
-		// Envia contenido al archivo
-		echo $html;
-		exit; ?>
-	</body>
-
-</html>
+header("Expires: Mon, 26 Jul 2227 05:00:00 GMT");
+header("Last-Modified: " . gmdate("D,d M YH:i:s") . " GMT");
+header("Cache-Control: no-cache, must-revalidate");
+header("Pragma: no-cache");
+header("Content-type: application/x-msexcel; charset=utf-8");
+header("Content-Disposition: attachment; filename=\"{$arquivo}\"");
+header("Content-Description: PHP Generado Data");
+echo $html;
+exit;

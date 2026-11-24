@@ -75,12 +75,33 @@ prueba('agrUsuario sin sesion redirige a login', strpos(peticion("$base/agrUsuar
 foreach (['inicio.php', 'nosotros.php', 'usuarios.php', 'proveedores.php', 'categorias.php', 'todosLosProyectos.php', 'estadisticas.php'] as $p) {
     prueba("$p con sesion responde 200", peticion("$base/$p", null, $cookieAdmin)['code'] === 200);
 }
-prueba('exportacion rechaza SQL arbitrario', peticion("$base/Exportar/ExcelCompras.php", ['sql' => 'DROP TABLE usuarios'], $cookieAdmin)['code'] === 400);
-prueba('exportacion rechaza consultas multiples', peticion("$base/Exportar/ExcelCompras.php", ['sql' => 'SELECT 1; DROP TABLE usuarios'], $cookieAdmin)['code'] === 400);
+
 $dup = $nuevo; $dup['usuario'] = 'admin';
 prueba('usuario duplicado -> error', strpos(peticion("$base/agrUsuario.php", $dup, $cookieAdmin)['loc'], '?error') !== false);
 $body = peticion("$base/detalleUsuario.php?no=1", null, $cookieAdmin)['body'];
 prueba('detalleUsuario no expone claves ni hashes', strpos($body, '$2y$') === false && strpos($body, 'value="123"') === false);
+
+// 4a. Compras (requiere tests/esquema_compras.sql aplicado a la base de prueba)
+$r = peticion("$base/verCompras.php", null, $cookieAdmin);
+prueba('verCompras responde 200 sin errores PHP', $r['code'] === 200 && !preg_match('/Fatal error|Warning:|Notice:/', $r['body']));
+prueba('verCompras lista las compras cargadas', strpos($r['body'], 'Cereales') !== false && strpos($r['body'], 'Fedea') !== false);
+$r = peticion("$base/verCompras.php?proveedor=1", null, $cookieAdmin);
+// Se mira solo la tabla: el desplegable de proveedores siempre lista todos los nombres
+$tabla = function (string $html): string { return preg_match('~<tbody>(.*?)</tbody>~s', $html, $m) ? $m[1] : ''; };
+prueba('verCompras filtra por proveedor', substr_count($tabla($r['body']), '<tr>') === 2 && strpos($tabla($r['body']), 'Cereales') !== false && strpos($tabla($r['body']), 'Fedea') === false);
+$r = peticion("$base/verCompras.php?desde=2023-06-01&hasta=2023-06-30", null, $cookieAdmin);
+prueba('verCompras filtra por rango de fechas', strpos($r['body'], '04/06/2023') !== false && strpos($r['body'], '06/11/2022') === false);
+$r = peticion("$base/verCompras.php?q=" . urlencode("' OR '1'='1"), null, $cookieAdmin);
+prueba('verCompras con busqueda inyectada no falla ni lista todo', $r['code'] === 200 && !preg_match('/Fatal error|SQL syntax/', $r['body']) && substr_count($tabla($r['body']), '<tr>') === 0);
+$r = peticion("$base/detalleCompra.php?no=1", null, $cookieAdmin);
+prueba('detalleCompra responde sin errores PHP', $r['code'] === 200 && !preg_match('/Fatal error|Warning:|Notice:/', $r['body']));
+$r = peticion("$base/Exportar/ExcelCompras.php", null, $cookieAdmin);
+prueba('exportar compras genera Excel con datos', $r['code'] === 200 && strpos($r['body'], 'Cereales') !== false);
+$r = peticion("$base/Exportar/ExcelCompras.php?proveedor=1", null, $cookieAdmin);
+prueba('exportar compras respeta los filtros', strpos($r['body'], 'Cereales') !== false && strpos($r['body'], 'Fedea') === false);
+$r = peticion("$base/Exportar/ExcelCompras.php", ['sql' => 'DROP TABLE usuarios'], $cookieAdmin);
+prueba('exportacion ignora SQL enviado por el cliente', $r['code'] === 200 && strpos(peticion("$base/usuarios.php", null, $cookieAdmin)['body'], 'admin') !== false);
+prueba('verCompras sin sesion redirige a login', strpos(peticion("$base/verCompras.php")['loc'], 'login.php') !== false);
 
 // 4b. Consultas preparadas en agr* y detalle*
 foreach (['detalleCategoria.php?no=1', 'detalleProveedor.php?no=1', 'detalleProyecto.php?no=1'] as $p) {
