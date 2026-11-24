@@ -98,6 +98,13 @@ $rolNombre = nombreRol(rolUsuario($conexion));
                         </ul>
                     </li>
 					<li class="nav-item dropdown">
+                        <a href="#" class="nav-link dropdown-toggle " id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="color: #0a6111;">Ventas</a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                            <li><a class="nav-link " href="./ventas.php">Ventas e ingresos</a></li>
+                            <li><a class="nav-link " href="./resultados.php">Resultados por proyecto</a></li>
+                        </ul>
+                    </li>
+					<li class="nav-item dropdown">
                         <a href="#" class="nav-link dropdown-toggle " id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="color: #0a6111;">Gestión</a>
                         <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
                             <li class="nav-item">
@@ -218,6 +225,8 @@ $rolNombre = nombreRol(rolUsuario($conexion));
 							<?php if ($puedeEscribir) { ?><a href="./detalleAlquiler.php">Detalle Alquiler</a><?php } ?>
 							<a href="./alquileres.php">Alquileres y cobros</a>
 							<a href="./avisos.php">Avisos de vencimientos</a>
+							<a href="./ventas.php">Ventas e ingresos</a>
+							<a href="./resultados.php">Resultados por proyecto</a>
 							<a href="./todosLosProyectos.php">Listado de proyectos</a>
 						</div>
 

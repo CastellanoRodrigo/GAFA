@@ -11,6 +11,7 @@ Hecho en PHP + MariaDB/MySQL. Se instala en una PC o servidor con XAMPP (Windows
 | **Proyectos** | Siembra, hacienda y alquiler por parcela; estados; filtros; exportación a Excel con inversión total por moneda |
 | **Parcelas** | Hectáreas totales, en uso y libres de cada parcela |
 | **Compras y gastos** | Carga de facturas con PDF, asignación a proyectos, filtros, totales **separados en pesos y dólares**, Excel |
+| **Ventas y resultados** | Registro de ventas (cosecha, hacienda, otros) en pesos o dólares; **resultado por proyecto** = ventas + alquiler cobrado − compras asignadas, siempre separado por moneda; Excel |
 | **Alquileres** | Contratos con inquilino, canon y periodicidad; cronograma de cuotas; registro de cobros; estados (vigente / por vencer / vencido) |
 | **Avisos** | Cuotas vencidas, próximas y contratos por vencer; envío por **mail** y **WhatsApp**; resumen diario al dueño |
 | **Usuarios y roles** | Administrador, Operador (carga datos) y Lector (solo consulta) |
@@ -46,6 +47,7 @@ Si ya tenés el sistema con datos, ejecutá **una vez y en este orden** sobre tu
 2. `migracion_alquiler.sql` — contratos y cobros de alquiler
 3. `migracion_notificaciones.sql` — contacto del inquilino y registro de avisos
 4. `migracion_roles_empresa.sql` — rol Operador y datos de la empresa
+5. `migracion_ventas.sql` — ventas e ingresos por proyecto
 
 Cada pantalla nueva avisa con un mensaje claro si falta ejecutar alguna.
 
@@ -56,7 +58,7 @@ Cada pantalla nueva avisa con un mensaje claro si falta ejecutar alguna.
 | Rol | Puede |
 |---|---|
 | **Administrador** | Todo: usuarios, proveedores, categorías, empresa, copias, enviar avisos |
-| **Operador** | Cargar y editar proyectos, compras, parcelas, contratos de alquiler y cobros |
+| **Operador** | Cargar y editar proyectos, compras, ventas, parcelas, contratos de alquiler y cobros |
 | **Lector** | Solo consultar y exportar |
 
 ## Avisos por mail y WhatsApp
@@ -95,7 +97,7 @@ Necesita una base de prueba cargada con el volcado original y las migraciones, m
 
 ## Qué está probado y qué no
 
-- Probado de forma automática: login, permisos por rol, compras, alquileres, cobros, monedas, exportaciones, avisos, copias, instalador, subida de logo y archivos.
+- Probado de forma automática: login, permisos por rol, compras, ventas y resultados, alquileres, cobros, monedas, exportaciones, avisos, copias, instalador, subida de logo y archivos.
 - **No verificado contra servicios reales:** el envío por Gmail/Outlook (se probó el protocolo SMTP contra un servidor de mentira) y la API de WhatsApp Business. Hacé un primer envío de prueba con tus credenciales.
 - El aspecto visual se revisó por código y no con capturas de pantalla.
 

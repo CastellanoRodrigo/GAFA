@@ -582,6 +582,85 @@ $dbN->close();
 $dbTest->query("DROP DATABASE IF EXISTS `$dbInst`");
 @unlink($cfgTmp);
 $dbTest->close();
+// 4k. Ventas y resultados por proyecto (requiere migracion_ventas.sql)
+$dbV = new mysqli('127.0.0.1', 'root', '', 'donjuanbd', 3307);
+$venta = function (array $d, ?string $cookie = null) use ($base, $cookieAdmin) { return peticion("$base/registrarVenta.php", $d, $cookie ?? $cookieAdmin); };
+$vb = ['accion' => 'crear', 'proyecto' => $pVig, 'fecha' => '2030-02-10', 'concepto' => 'TEST Venta de soja', 'cantidad' => '25', 'unidad' => 'tn', 'importe' => '5000', 'moneda' => 1, 'comprador' => 'juan perez', 'comprobante' => 'A-1', 'observaciones' => ''];
+$r = peticion("$base/ventas.php", null, $cookieAdmin);
+prueba('ventas.php responde 200 sin errores PHP', $r['code'] === 200 && !preg_match('/Fatal error|Warning:|Notice:/', $r['body']));
+prueba('ventas sin sesion redirige a login', strpos(peticion("$base/ventas.php")['loc'], 'login.php') !== false);
+prueba('registrarVenta sin sesion redirige a login', strpos(peticion("$base/registrarVenta.php", $vb)['loc'], 'login.php') !== false);
+prueba('venta con importe 0 -> error importe', strpos($venta(['importe' => '0'] + $vb)['loc'], 'error=importe') !== false);
+prueba('venta con importe negativo -> error importe', strpos($venta(['importe' => '-5'] + $vb)['loc'], 'error=importe') !== false);
+prueba('venta con moneda inexistente -> error moneda', strpos($venta(['moneda' => 99] + $vb)['loc'], 'error=moneda') !== false);
+prueba('venta con proyecto inexistente -> error proyecto', strpos($venta(['proyecto' => 999999] + $vb)['loc'], 'error=proyecto') !== false);
+prueba('venta con fecha invalida -> error datos', strpos($venta(['fecha' => '2030-13-45'] + $vb)['loc'], 'error=datos') !== false);
+prueba('venta sin concepto -> error datos', strpos($venta(['concepto' => '  '] + $vb)['loc'], 'error=datos') !== false);
+$venta(['proyecto' => '1 OR 1=1', 'concepto' => "TEST x'); DROP TABLE ventas;--"] + $vb);
+$lit = $dbV->query("SELECT COUNT(*) FROM ventas WHERE concepto = 'TEST x\'); DROP TABLE ventas;--'")->fetch_row()[0] ?? 0;
+prueba('un concepto con SQL se guarda como texto literal y la tabla sigue intacta', (int)$lit === 1);
+$dbV->query("DELETE FROM ventas WHERE concepto LIKE 'TEST x%'");
+prueba('se crea una venta en pesos', strpos($venta($vb)['loc'], 'ventas.php?ok') !== false);
+prueba('se crea una venta en dolares', strpos($venta(['concepto' => 'TEST Venta de terneros', 'cantidad' => '40', 'unidad' => 'cabezas', 'importe' => '800', 'moneda' => 2, 'comprador' => 'campos del sur'] + $vb)['loc'], 'ventas.php?ok') !== false);
+prueba('el Operador puede registrar ventas', strpos($venta(['concepto' => 'TEST Venta operador', 'importe' => '100'] + $vb, $cookieOp)['loc'], 'ventas.php?ok') !== false);
+prueba('el Lector no puede registrar ventas (403)', $venta(['concepto' => 'TEST Lector'] + $vb, $cookieLector)['code'] === 403);
+prueba('el Lector no puede quitar ventas (403)', $venta(['accion' => 'eliminar', 'venta' => 1], $cookieLector)['code'] === 403);
+$cb = $dbV->query("SELECT comprador FROM ventas WHERE concepto = 'TEST Venta de soja'")->fetch_row()[0] ?? '';
+prueba('el comprador se guarda con mayuscula inicial ("Juan Perez")', $cb === 'Juan Perez');
+
+$r = peticion("$base/ventas.php?q=TEST", null, $cookieAdmin);
+prueba('ventas lista las 3 ventas de prueba con su moneda', substr_count($tabla($r['body']), '<tr>') === 3 && strpos($tabla($r['body']), 'US$ 800,00') !== false && strpos($tabla($r['body']), '$ 5.000,00') !== false
+    && strpos($tabla($r['body']), 'moneda-usd') !== false && strpos($tabla($r['body']), 'moneda-ars') !== false);
+prueba('ventas separa los totales en pesos y en dolares', strpos($r['body'], 'Vendido en pesos') !== false && strpos($r['body'], 'Vendido en dólares') !== false
+    && strpos($r['body'], '$ 5.100,00') !== false);
+$r = peticion("$base/ventas.php?q=TEST&proyecto=$pVig&desde=2030-02-01&hasta=2030-02-28", null, $cookieAdmin);
+prueba('ventas filtra por proyecto y fechas', substr_count($tabla($r['body']), '<tr>') === 3);
+prueba('ventas filtra por fechas fuera de rango', substr_count($tabla(peticion("$base/ventas.php?q=TEST&desde=2031-01-01", null, $cookieAdmin)['body']), '<tr>') === 0);
+$r = peticion("$base/ventas.php?q=" . urlencode("' OR '1'='1"), null, $cookieAdmin);
+prueba('ventas con busqueda inyectada no lista nada', $r['code'] === 200 && substr_count($tabla($r['body']), '<tr>') === 0 && !preg_match('/SQL syntax/', $r['body']));
+$rl = peticion("$base/ventas.php", null, $cookieLector);
+prueba('el Lector consulta ventas sin formularios de carga ni de borrado', $rl['code'] === 200 && strpos($rl['body'], 'action="./registrarVenta.php"') === false && strpos($rl['body'], 'Resultados por proyecto') !== false);
+prueba('el Administrador ve el formulario de venta', strpos($r['body'], 'action="./registrarVenta.php"') !== false);
+
+// Resultados: ingresos (ventas + alquiler cobrado) - gastos (compras asignadas), por moneda
+peticion("$base/registrarCobro.php", ['cobro' => $idCobro, 'accion' => 'cobrar', 'fechaPago' => $hoy], $cookieAdmin);
+$r = peticion("$base/resultados.php?no=$pVig", null, $cookieAdmin);
+prueba('resultado del proyecto: ingresos en pesos = ventas 5.100 + alquiler cobrado 1.000', $r['code'] === 200 && strpos($r['body'], '$ 6.100,00') !== false && !preg_match('/Fatal error|Warning:|Notice:/', $r['body']));
+prueba('resultado del proyecto: los dolares se muestran aparte (US$ 800,00) y no se suman a los pesos', strpos($r['body'], 'US$ 800,00') !== false && strpos($r['body'], '6.900,00') === false);
+prueba('resultado del proyecto: lista la venta y el cobro de alquiler', strpos($r['body'], 'TEST Venta de soja') !== false && strpos($r['body'], 'Cobros de alquiler incluidos') !== false);
+$gc = $dbV->query("SELECT c.importeTotal, m.moneda FROM compraproyecto cp JOIN compras c ON c.id_Compras = cp.id_Compras JOIN moneda m ON m.id_Moneda = c.id_Moneda WHERE cp.id_Compras = 2 AND cp.id_TipoCompra = 2")->fetch_assoc();
+$r = peticion("$base/resultados.php?no=5", null, $cookieAdmin);
+prueba('el gasto de una compra asignada reduce el resultado (perdida en su moneda)', $gc && strpos($r['body'], montoMoneda($gc['importeTotal'], $gc['moneda'])) !== false && strpos($r['body'], 'Pérdida') !== false);
+prueba('resultados de un proyecto inexistente avisa sin romper', strpos(peticion("$base/resultados.php?no=999999", null, $cookieAdmin)['body'], 'PROYECTO NO ENCONTRADO') !== false);
+$r = peticion("$base/resultados.php", null, $cookieAdmin);
+prueba('resultados lista proyectos con su moneda y totales por moneda', $r['code'] === 200 && strpos($fila($tabla($r['body']), 'Alq Vigente'), 'moneda-ars') !== false
+    && strpos($r['body'], 'Resultado en pesos') !== false && strpos($r['body'], 'Resultado en dólares') !== false);
+$r = peticion("$base/resultados.php?q=Vigente", null, $cookieAdmin);
+prueba('resultados filtra por nombre', strpos($tabla($r['body']), 'Alq Vigente') !== false && strpos($tabla($r['body']), 'Alq Vencido') === false);
+prueba('resultados sin sesion redirige a login', strpos(peticion("$base/resultados.php")['loc'], 'login.php') !== false);
+prueba('el Lector consulta resultados', peticion("$base/resultados.php", null, $cookieLector)['code'] === 200 && peticion("$base/resultados.php?no=$pVig", null, $cookieLector)['code'] === 200);
+prueba('todosLosProyectos ofrece el enlace al resultado', strpos(peticion("$base/todosLosProyectos.php?q=" . urlencode('Alq Vigente'), null, $cookieAdmin)['body'], "resultados.php?no=$pVig") !== false);
+$b = peticion("$base/inicio.php", null, $cookieLector)['body'];
+prueba('el menu incluye Ventas y Resultados para todos los roles', strpos($b, 'href="./ventas.php"') !== false && strpos($b, 'href="./resultados.php"') !== false);
+
+$r = peticion("$base/Exportar/ExcelVentas.php?q=TEST", null, $cookieAdmin);
+prueba('Excel de ventas trae datos y totales por moneda', $r['code'] === 200 && strpos($r['body'], 'TEST Venta de soja') !== false && strpos($r['body'], 'Total en dólares (USD)') !== false && strpos($r['body'], 'Total en pesos (ARS)') !== false);
+$r = peticion("$base/Exportar/ExcelVentas.php?q=terneros", null, $cookieAdmin);
+prueba('Excel de ventas respeta el filtro', strpos($r['body'], 'TEST Venta de terneros') !== false && strpos($r['body'], 'TEST Venta de soja') === false);
+prueba('Excel de ventas sin sesion -> 403', peticion("$base/Exportar/ExcelVentas.php")['code'] === 403);
+$r = peticion("$base/Exportar/ExcelResultados.php", null, $cookieAdmin);
+prueba('Excel de resultados trae proyectos y totales por moneda', $r['code'] === 200 && strpos($r['body'], 'Alq Vigente') !== false && strpos($r['body'], 'Totales en pesos (ARS)') !== false);
+prueba('Excel de resultados sin sesion -> 403', peticion("$base/Exportar/ExcelResultados.php")['code'] === 403);
+
+// Quitar una venta y limpiar los datos de prueba
+preg_match('~name="venta" value="(\d+)"~', peticion("$base/ventas.php?q=" . urlencode('TEST Venta operador'), null, $cookieAdmin)['body'], $mv);
+prueba('quitar una venta', strpos($venta(['accion' => 'eliminar', 'venta' => (int)($mv[1] ?? 0)])['loc'], 'ventas.php?borrada') !== false
+    && substr_count($tabla(peticion("$base/ventas.php?q=TEST", null, $cookieAdmin)['body']), '<tr>') === 2);
+prueba('quitar una venta inexistente -> error', strpos($venta(['accion' => 'eliminar', 'venta' => 999999])['loc'], 'error') !== false);
+$dbV->query("DELETE FROM ventas WHERE concepto LIKE 'TEST%'");
+peticion("$base/registrarCobro.php", ['cobro' => $idCobro, 'accion' => 'deshacer'], $cookieAdmin);
+$dbV->close();
+
 // 5. Subida de PDF
 $tmp = tempnam(sys_get_temp_dir(), 'pdf');
 file_put_contents($tmp, "%PDF-1.4\n%%EOF");

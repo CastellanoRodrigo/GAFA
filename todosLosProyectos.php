@@ -110,6 +110,7 @@ $qs = http_build_query(array_filter($f, function ($v) { return $v !== '' && $v !
             <td><?php echo e($p['estado']); ?></td>
             <td class="text-center text-nowrap">
                 <a class="btn btn-sm btn-outline-success" href="./detalleProyecto.php?no=<?php echo (int)$p['id_Proyecto']; ?>">Ver / modificar</a>
+                <a class="btn btn-sm btn-outline-success" href="./resultados.php?no=<?php echo (int)$p['id_Proyecto']; ?>">Resultado</a>
                 <?php if ((int)$p['id_TipoProyecto'] === 3) { ?>
                     <?php if ($p['id_DetalleAlquiler']) { ?>
                     <a class="btn btn-sm btn-success" href="./cobrosAlquiler.php?no=<?php echo (int)$p['id_DetalleAlquiler']; ?>">Cobros</a>

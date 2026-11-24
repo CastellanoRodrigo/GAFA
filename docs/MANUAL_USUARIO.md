@@ -24,6 +24,12 @@ Cada parcela tiene su número y sus hectáreas. La pantalla muestra cuántas hec
 - **Ver compras:** filtrá por fechas, proveedor, número de factura o detalle. Cada compra muestra su moneda y los totales se separan en **pesos** y **dólares**.
 - **Asignar compras:** pasa una compra general a un proyecto.
 
+## Ventas y resultados por proyecto
+- **Ventas → Ventas e ingresos:** registrá cada venta (proyecto, fecha, concepto, cantidad, importe, **moneda** y comprador). Los totales se muestran separados en pesos y en dólares. Se puede filtrar y exportar a Excel.
+- **Ventas → Resultados por proyecto:** muestra, por proyecto y por moneda, las ventas, el alquiler cobrado, los gastos (compras asignadas al proyecto) y el **resultado** (ganancia o pérdida). Tocá **Ver** para el detalle de un proyecto.
+- Para que el resultado sea correcto, asigná cada compra a su proyecto (Compras → Asignar compras) y marcá los cobros de alquiler.
+- Los pesos y los dólares nunca se suman ni se convierten entre sí.
+
 ## Avisos de vencimientos y pagos
 - **Avisos** lista las cuotas vencidas (agrupadas por contrato), las cuotas que vencen pronto y los contratos por terminar.
 - Cada fila tiene **Mail** y **WhatsApp**. WhatsApp abre la conversación con el mensaje listo; solo tocás enviar.
@@ -33,7 +39,7 @@ Cada parcela tiene su número y sus hectáreas. La pantalla muestra cuántas hec
 
 ## Usuarios y roles (solo administrador)
 - **Administrador:** todo.
-- **Operador:** carga y edita datos (proyectos, compras, parcelas, alquileres, cobros).
+- **Operador:** carga y edita datos (proyectos, compras, ventas, parcelas, alquileres, cobros).
 - **Lector:** solo consulta y exporta.
 
 Los nombres se guardan siempre con mayúscula inicial.
