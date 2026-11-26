@@ -6,7 +6,7 @@ include_once('./Modelo/Auth.php');
 requerirAdmin($conexion);
 
 $idUsuario = (int)($_GET['no'] ?? 0);
-$stmt = $conexion->prepare("SELECT id_usuario, usuario, nombre, apellido, id_tipoUsuario, id_EstadoUsuario FROM usuarios WHERE id_usuario = ?");
+$stmt = $conexion->prepare("SELECT * FROM usuarios WHERE id_usuario = ?");
 $stmt->bind_param("i", $idUsuario);
 $stmt->execute();
 $u = $stmt->get_result()->fetch_assoc();
@@ -42,6 +42,12 @@ if (!$u) {
                 <label for="apellido">Apellido:</label>
                 <input type="text" name="apellido" id="apellido" value="<?php echo e(nombrePropio($u['apellido'])); ?>" required>
             </div>
+            <?php if (array_key_exists('email', $u)) { ?>
+            <div class="labelInput">
+                <label for="email">Mail (para recuperar la contraseña):</label>
+                <input type="email" name="email" id="email" maxlength="120" value="<?php echo e($u['email'] ?? ''); ?>" placeholder="nombre@correo.com">
+            </div>
+            <?php } ?>
             <div class="labelInput">
                 <label for="pass">Contraseña nueva:</label>
                 <input type="password" name="pass" id="pass" placeholder="Dejar vacío para no cambiarla" autocomplete="new-password">

@@ -402,9 +402,9 @@ $r = peticion("$base/inicio.php", null, $cookieAdmin);
 prueba('el saludo muestra "Lucila Dolce" con mayusculas', strpos($r['body'], 'Bienvenido/a, Lucila Dolce') !== false);
 $r = peticion("$base/usuarios.php", null, $cookieAdmin);
 prueba('usuarios.php muestra nombres con mayuscula inicial', strpos($r['body'], '>Lucila<') !== false && strpos($r['body'], '>Dolce<') !== false && strpos($r['body'], '>lucila<') === false && strpos($r['body'], '>dolce<') === false);
-$nuevoUsr = ['usuario' => 'testcap1', 'pass' => 'x1', 'nombre' => 'maría josé', 'apellido' => 'de la cruz', 'tipo' => 2, 'estado' => 1];
+$nuevoUsr = ['usuario' => 'testcap1', 'pass' => 'x1', 'nombre' => 'maría josé', 'apellido' => 'de la cruz', 'tipo' => 2, 'estado' => 1, 'email' => 'testcap1@test.local'];
 peticion("$base/agrUsuario.php", $nuevoUsr, $cookieAdmin);
-$nuevoUsr2 = ['usuario' => 'testcap2', 'pass' => 'x2', 'nombre' => 'JUAN CARLOS', 'apellido' => "o'brien-pérez", 'tipo' => 2, 'estado' => 1];
+$nuevoUsr2 = ['usuario' => 'testcap2', 'pass' => 'x2', 'nombre' => 'JUAN CARLOS', 'apellido' => "o'brien-pérez", 'tipo' => 2, 'estado' => 1, 'email' => 'testcap2@test.local'];
 peticion("$base/agrUsuario.php", $nuevoUsr2, $cookieAdmin);
 $r = peticion("$base/usuarios.php", null, $cookieAdmin);
 prueba('al crear un usuario el nombre se guarda con mayuscula inicial ("María José De la Cruz")', strpos($r['body'], '>María José<') !== false && strpos($r['body'], '>De la Cruz<') !== false);
@@ -412,7 +412,7 @@ prueba('mayusculas respetan apostrofes, guiones y tildes ("Juan Carlos O\'Brien-
 $r = peticion("$base/detalleUsuario.php?no=1", null, $cookieAdmin);
 prueba('detalleUsuario muestra el nombre con mayuscula', strpos($r['body'], 'value="Lucila"') !== false && strpos($r['body'], 'value="Dolce"') !== false);
 // 4f. Roles: Administrador / Operador / Lector
-$op = ['usuario' => 'operador1', 'pass' => 'op1234', 'nombre' => 'ana', 'apellido' => 'gómez', 'tipo' => 3, 'estado' => 1];
+$op = ['usuario' => 'operador1', 'pass' => 'op1234', 'nombre' => 'ana', 'apellido' => 'gómez', 'tipo' => 3, 'estado' => 1, 'email' => 'operador1@test.local'];
 peticion("$base/agrUsuario.php", $op, $cookieAdmin);
 $rOp = login($base, 'operador1', 'op1234');
 $cookieOp = $rOp['cookie'];
@@ -715,7 +715,7 @@ prueba('el inicio del Administrador ofrece Gestion y los accesos nuevos', strpos
 prueba('el inicio del Lector no muestra Gestion y ofrece Parcelas', strpos($il, 'Usuarios, proveedores, empresa y copias') === false && strpos($il, '<h3>Parcelas</h3>') !== false);
 
 // 4n. Seguridad: bloqueo de intentos y registro de actividad (requiere migracion_seguridad.sql)
-peticion("$base/agrUsuario.php", ['usuario' => 'bloq2', 'pass' => 'Clave1234', 'nombre' => 'x', 'apellido' => 'y', 'tipo' => 2, 'estado' => 1], $cookieAdmin);
+peticion("$base/agrUsuario.php", ['usuario' => 'bloq2', 'pass' => 'Clave1234', 'nombre' => 'x', 'apellido' => 'y', 'tipo' => 2, 'estado' => 1, 'email' => 'bloq2@test.local'], $cookieAdmin);
 prueba('el usuario de prueba puede ingresar antes del bloqueo', strpos(login($base, 'bloq2', 'Clave1234')['loc'], '?ok') !== false);
 for ($i = 0; $i < 5; $i++) login($base, 'bloq2', 'incorrecta');
 prueba('tras 5 intentos fallidos el usuario queda bloqueado (aun con la clave correcta)', strpos(login($base, 'bloq2', 'Clave1234')['loc'], '?bloq') !== false);
@@ -731,6 +731,101 @@ prueba('el registro de actividad sin sesion redirige a login', strpos(peticion("
 $dbH->query("DELETE FROM usuarios WHERE usuario = 'bloq2'");
 $dbH->query("DELETE FROM intentoslogin");
 $dbH->close();
+
+// 4o. Recuperacion de contraseña por mail (requiere migracion_recuperacion.sql)
+$dbR = new mysqli('127.0.0.1', 'root', '', 'donjuanbd', 3307);
+foreach (glob($outbox . '/*.eml') ?: [] as $viejo) @unlink($viejo);
+$nu = ['usuario' => 'recu1', 'pass' => 'ClaveVieja1', 'nombre' => 'rosa', 'apellido' => 'díaz', 'tipo' => 3, 'estado' => 1, 'email' => 'Recu1@Test.Local'];
+$alta = function (array $d) use ($base, $cookieAdmin) { return peticion("$base/agrUsuario.php", $d, $cookieAdmin); };
+prueba('alta de usuario sin mail -> error email', strpos($alta(['email' => ''] + $nu)['loc'], 'error=email') !== false);
+prueba('alta de usuario con mail invalido -> error email', strpos($alta(['email' => 'no-es-un-mail'] + $nu)['loc'], 'error=email') !== false);
+prueba('el usuario rechazado no se creo', (int)$dbR->query("SELECT COUNT(*) FROM usuarios WHERE usuario = 'recu1'")->fetch_row()[0] === 0);
+prueba('alta de usuario con mail valido', strpos($alta($nu)['loc'], 'usuarios.php?ok') !== false);
+prueba('el mail se guarda en minusculas', ($dbR->query("SELECT email FROM usuarios WHERE usuario = 'recu1'")->fetch_row()[0] ?? '') === 'recu1@test.local');
+prueba('dos usuarios no pueden compartir el mismo mail', strpos($alta(['usuario' => 'recu1b', 'email' => 'recu1@test.local'] + $nu)['loc'], 'error') !== false
+    && (int)$dbR->query("SELECT COUNT(*) FROM usuarios WHERE usuario = 'recu1b'")->fetch_row()[0] === 0);
+prueba('usuarios.php muestra el mail y marca a quien no lo tiene', strpos(peticion("$base/usuarios.php", null, $cookieAdmin)['body'], 'recu1@test.local') !== false
+    && strpos(peticion("$base/usuarios.php", null, $cookieAdmin)['body'], 'Sin mail') !== false);
+$idRecu = (int)$dbR->query("SELECT id_usuario FROM usuarios WHERE usuario = 'recu1'")->fetch_row()[0];
+prueba('detalleUsuario muestra el campo mail', strpos(peticion("$base/detalleUsuario.php?no=$idRecu", null, $cookieAdmin)['body'], 'value="recu1@test.local"') !== false);
+prueba('modUsuario cambia el mail y lo guarda en minusculas', strpos(peticion("$base/modUsuario.php", ['id' => $idRecu, 'usuario' => 'recu1', 'nombre' => 'Rosa', 'apellido' => 'Díaz', 'tipo' => 3, 'estado' => 1, 'email' => 'Otro@Test.Local'], $cookieAdmin)['loc'], 'ok') !== false
+    && ($dbR->query("SELECT email FROM usuarios WHERE id_usuario = $idRecu")->fetch_row()[0] ?? '') === 'otro@test.local');
+prueba('modUsuario no admite un mail invalido', strpos(peticion("$base/modUsuario.php", ['id' => $idRecu, 'usuario' => 'recu1', 'nombre' => 'Rosa', 'apellido' => 'Díaz', 'tipo' => 3, 'estado' => 1, 'email' => 'roto@'], $cookieAdmin)['loc'], 'error=email') !== false);
+peticion("$base/modUsuario.php", ['id' => $idRecu, 'usuario' => 'recu1', 'nombre' => 'Rosa', 'apellido' => 'Díaz', 'tipo' => 3, 'estado' => 1, 'email' => 'recu1@test.local'], $cookieAdmin);
+
+$rl = peticion("$base/login.php");
+prueba('el login ofrece "Olvidaste tu contraseña"', strpos($rl['body'], 'recuperar.php') !== false);
+$rr = peticion("$base/recuperar.php");
+prueba('recuperar.php es publica y pide usuario o mail', $rr['code'] === 200 && strpos($rr['body'], 'name="identificador"') !== false && !preg_match('/Fatal error|Warning:|Notice:/', $rr['body']));
+
+$pedir = function (string $ident) use ($base) { return peticion("$base/recuperar.php", ['identificador' => $ident]); };
+$antes = $contarMails();
+$r = $pedir('usuario_que_no_existe');
+prueba('pedido para un usuario inexistente responde igual y no envia nada', strpos($r['loc'], 'recuperar.php?enviado') !== false && $contarMails() === $antes);
+$r = $pedir("' OR '1'='1");
+prueba('pedido con SQL inyectado no envia nada ni rompe', strpos($r['loc'], 'recuperar.php?enviado') !== false && $contarMails() === $antes);
+$tokenDe = function (array $mails, string $para) {
+    foreach (array_reverse($mails) as $m) if ($m['to'] === $para && preg_match('~restablecer\.php\?t=([0-9a-f]{64})~', $m['texto'], $mt)) return $mt[1];
+    return '';
+};
+$r = $pedir('recu1');
+prueba('pedido por usuario: responde "enviado" y manda un mail', strpos($r['loc'], 'recuperar.php?enviado') !== false && $contarMails() === $antes + 1);
+$mails = $leerMails();
+$tok1 = $tokenDe($mails, 'recu1@test.local');
+prueba('el mail llega al destinatario con un enlace de 64 caracteres y aviso de vencimiento', strlen($tok1) === 64 && strpos(end($mails)['texto'], 'una sola vez') !== false && strpos(end($mails)['texto'], 'recu1') !== false);
+prueba('el enlace no se guarda en la base (solo su hash)', (int)$dbR->query("SELECT COUNT(*) FROM recuperacion WHERE tokenHash = '$tok1'")->fetch_row()[0] === 0
+    && (int)$dbR->query("SELECT COUNT(*) FROM recuperacion WHERE tokenHash = '" . hash('sha256', $tok1) . "'")->fetch_row()[0] === 1);
+$r = $pedir('RECU1@test.local');
+$tok2 = $tokenDe($leerMails(), 'recu1@test.local');
+prueba('tambien se puede pedir por mail y se genera un enlace nuevo', $contarMails() === $antes + 2 && $tok2 !== '' && $tok2 !== $tok1);
+$g = peticion("$base/restablecer.php?t=$tok1");
+prueba('el enlace anterior deja de servir al pedir uno nuevo', strpos($g['body'], 'no es válido') !== false && strpos($g['body'], 'name="pass"') === false);
+$g = peticion("$base/restablecer.php?t=$tok2");
+prueba('el enlace vigente muestra el formulario con el usuario y sin cache ni referrer', $g['code'] === 200 && strpos($g['body'], 'name="pass2"') !== false && strpos($g['body'], '<b>recu1</b>') !== false
+    && stripos($g['headers'], 'Referrer-Policy: no-referrer') !== false && stripos($g['headers'], 'no-store') !== false);
+prueba('un token inventado o mal formado no sirve', strpos(peticion("$base/restablecer.php?t=" . str_repeat('a', 64))['body'], 'no es válido') !== false
+    && strpos(peticion("$base/restablecer.php?t=" . urlencode("' OR 1=1 --"))['body'], 'no es válido') !== false && strpos(peticion("$base/restablecer.php")['body'], 'no es válido') !== false);
+$cambiar = function (string $t, string $p1, string $p2) use ($base) { return peticion("$base/restablecer.php", ['t' => $t, 'pass' => $p1, 'pass2' => $p2]); };
+prueba('una contraseña corta se rechaza', strpos($cambiar($tok2, '1234567', '1234567')['body'], 'al menos 8') !== false);
+prueba('contraseñas distintas se rechazan', strpos($cambiar($tok2, 'ClaveNueva99', 'ClaveNueva98')['body'], 'no coinciden') !== false);
+prueba('tras los rechazos la clave vieja sigue funcionando', strpos(login($base, 'recu1', 'ClaveVieja1')['loc'], '?ok') !== false);
+// Bloquear al usuario con intentos fallidos: restablecer la clave tambien levanta el bloqueo
+for ($i = 0; $i < 5; $i++) login($base, 'recu1', 'mala');
+prueba('el usuario queda bloqueado por intentos fallidos', strpos(login($base, 'recu1', 'ClaveVieja1')['loc'], '?bloq') !== false);
+$r = $cambiar($tok2, 'ClaveNueva99', 'ClaveNueva99');
+prueba('con el enlace se cambia la contraseña y se vuelve al login', strpos($r['loc'], 'login.php?clave') !== false);
+prueba('la contraseña nueva funciona (y levanta el bloqueo)', strpos(login($base, 'recu1', 'ClaveNueva99')['loc'], '?ok') !== false);
+prueba('la contraseña vieja ya no funciona', strpos(login($base, 'recu1', 'ClaveVieja1')['loc'], '?err') !== false);
+prueba('el enlace no se puede usar dos veces', strpos(peticion("$base/restablecer.php?t=$tok2")['body'], 'no es válido') !== false
+    && strpos($cambiar($tok2, 'OtraClave123', 'OtraClave123')['body'], 'no es válido') !== false && strpos(login($base, 'recu1', 'ClaveNueva99')['loc'], '?ok') !== false);
+prueba('el login muestra el aviso de contraseña actualizada', strpos(peticion("$base/login.php?clave")['body'], 'Contraseña actualizada') !== false);
+
+// Vencimiento, usuarios inactivos, sin mail y limite de pedidos
+$n0 = $contarMails();
+$pedir('recu1');
+$tok3 = $tokenDe($leerMails(), 'recu1@test.local');
+$dbR->query("UPDATE recuperacion SET expira = NOW() - INTERVAL 1 MINUTE");
+prueba('un enlace vencido no sirve', $tok3 !== '' && strpos(peticion("$base/restablecer.php?t=$tok3")['body'], 'no es válido') !== false);
+$alta(['usuario' => 'recu2', 'email' => 'recu2@test.local', 'estado' => 2] + $nu);
+$n1 = $contarMails();
+$pedir('recu2');
+prueba('un usuario inactivo no recibe el enlace', $contarMails() === $n1);
+$dbR->query("INSERT INTO usuarios (usuario, password, nombre, apellido, id_tipoUsuario, id_EstadoUsuario) VALUES ('recu_sinmail', 'x', 'S', 'M', 2, 1)");
+$n1 = $contarMails();
+$pedir('recu_sinmail');
+prueba('un usuario sin mail cargado no recibe nada (y la respuesta no lo delata)', $contarMails() === $n1);
+$alta(['usuario' => 'recu3', 'email' => 'recu3@test.local'] + $nu);
+$n1 = $contarMails();
+for ($i = 0; $i < 5; $i++) $pedir('recu3');
+prueba('hay un limite de 3 pedidos por hora por usuario', $contarMails() === $n1 + 3);
+$au = peticion("$base/auditoria.php", null, $cookieAdmin)['body'];
+prueba('el registro de actividad deja constancia de la recuperacion', strpos($au, 'recuperacion_enviada') !== false && strpos($au, 'clave_restablecida') !== false
+    && strpos($au, 'recuperacion_desconocida') !== false && strpos($au, 'recuperacion_limitada') !== false);
+$dbR->query("DELETE FROM usuarios WHERE usuario LIKE 'recu%'");
+$dbR->query("DELETE FROM recuperacion");
+$dbR->query("DELETE FROM intentoslogin");
+foreach (glob($outbox . '/*.eml') ?: [] as $viejo) @unlink($viejo);
+$dbR->close();
 
 // 5. Subida de PDF
 $tmp = tempnam(sys_get_temp_dir(), 'pdf');

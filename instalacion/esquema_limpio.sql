@@ -1,5 +1,5 @@
 -- Esquema limpio de GAFA (sin datos de ejemplo)
--- Generada el 2026-11-26 01:54:14
+-- Generada el 2026-11-26 02:18:24
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS=0;
 SET SQL_MODE='NO_AUTO_VALUE_ON_ZERO';
@@ -263,6 +263,20 @@ CREATE TABLE `proyectos` (
   PRIMARY KEY (`id_Proyecto`)
 ) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
+DROP TABLE IF EXISTS `recuperacion`;
+CREATE TABLE `recuperacion` (
+  `id_Recuperacion` int(11) NOT NULL AUTO_INCREMENT,
+  `id_usuario` int(11) NOT NULL,
+  `tokenHash` char(64) NOT NULL COMMENT 'SHA-256 del enlace; el enlace en si nunca se guarda',
+  `creado` datetime NOT NULL DEFAULT current_timestamp(),
+  `expira` datetime NOT NULL,
+  `usado` tinyint(4) NOT NULL DEFAULT 0,
+  `ip` varchar(45) DEFAULT NULL,
+  PRIMARY KEY (`id_Recuperacion`),
+  UNIQUE KEY `uq_recup_token` (`tokenHash`),
+  KEY `idx_recup_usuario` (`id_usuario`,`creado`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+
 DROP TABLE IF EXISTS `tipo_usuario`;
 CREATE TABLE `tipo_usuario` (
   `id_tipoUsuario` int(11) NOT NULL AUTO_INCREMENT,
@@ -296,7 +310,9 @@ CREATE TABLE `usuarios` (
   `apellido` varchar(45) NOT NULL,
   `id_tipoUsuario` int(11) NOT NULL,
   `id_EstadoUsuario` int(1) NOT NULL,
-  PRIMARY KEY (`id_usuario`)
+  `email` varchar(120) DEFAULT NULL,
+  PRIMARY KEY (`id_usuario`),
+  UNIQUE KEY `uq_usuario_email` (`email`)
 ) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
 DROP TABLE IF EXISTS `ventas`;

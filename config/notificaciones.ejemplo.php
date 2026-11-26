@@ -5,6 +5,10 @@
 return [
     'empresa' => 'Don Juan S.R.L',
 
+    // Direccion publica del sistema, usada en los enlaces de recuperacion de contraseña. Ej.: 'https://gestion.miempresa.com/GAFA'
+    // Si se deja vacia se arma con la direccion del pedido.
+    'url_base' => '',
+
     // A quien le llega el resumen diario de vencimientos (el dueño / administracion)
     'aviso_interno_email' => '',
     'aviso_interno_telefono' => '',

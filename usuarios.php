@@ -6,6 +6,8 @@ include('./Modelo/Conexion.php'); include_once('./Modelo/Auth.php'); requerirAdm
 include('./Template/Cabecera.php');
 include('./Modelo/Conexion.php');
 include_once('./Modelo/Auth.php');
+include_once('./Modelo/Moneda.php');
+$mailCol = columnaExiste($conexion, 'usuarios', 'email');
 ?>
 <center>
     <h1>USUARIOS</h1>
@@ -17,13 +19,14 @@ include_once('./Modelo/Auth.php');
             <th style="padding:5px;">Usuario</th>
             <th style="padding:5px;">Nombre</th>
             <th style="padding:5px;">Apellido</th>
+            <th style="padding:5px;">Mail</th>
             <th style="padding:5px;">Tipo</th>
             <th style="padding:5px;">Estado</th>
             <th style="padding:5px;text-align:center;">Modificar</th>
         </tr>
         </thead>
         <?php
-        $consulta = mysqli_query($conexion, "SELECT u.id_usuario, u.usuario, u.nombre, u.apellido, t.tipo, e.estadoUsuario
+        $consulta = mysqli_query($conexion, "SELECT u.id_usuario, u.usuario, u.nombre, u.apellido, " . ($mailCol ? "u.email, " : "") . "t.tipo, e.estadoUsuario
             FROM usuarios u
             LEFT JOIN tipo_usuario t ON t.id_tipoUsuario = u.id_tipoUsuario
             LEFT JOIN estadousuario e ON e.id_EstadoUsuario = u.id_EstadoUsuario
@@ -33,6 +36,7 @@ include_once('./Modelo/Auth.php');
             <td style="padding:5px;"><?php echo e($u['usuario']); ?></td>
             <td style="padding:5px;"><?php echo e(nombrePropio($u['nombre'])); ?></td>
             <td style="padding:5px;"><?php echo e(nombrePropio($u['apellido'])); ?></td>
+            <td style="padding:5px;"><?php echo $mailCol ? ($u['email'] ? e($u['email']) : '<span class="texto-mal">Sin mail</span>') : '-'; ?></td>
             <td style="padding:5px;"><?php echo e($u['tipo']); ?></td>
             <td style="padding:5px;"><?php echo e($u['estadoUsuario']); ?></td>
             <td class="text-center text-nowrap"><a class="btn btn-sm btn-outline-success" href="./detalleUsuario.php?no=<?php echo (int)$u['id_usuario']; ?>">Modificar</a></td>

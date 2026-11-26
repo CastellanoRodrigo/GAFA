@@ -31,12 +31,15 @@ try {
         <input class="cajas" type="text" name="usuario" placeholder="Usuario" required autofocus>
         <input class="cajas" type="password" name="password" placeholder="Contraseña" required>
         <input class="btn" type="submit" name="btningresar" value="Ingresar">
+        <p style="text-align:center;margin:8px 0 0;"><a style="color:#fff;" href="./recuperar.php">¿Olvidaste tu contraseña?</a></p>
     </form>
     <?php if ($empLogin !== '') { ?><p class="pie-login">Sistema GAFA · <?php echo htmlspecialchars($empLogin, ENT_QUOTES, 'UTF-8'); ?></p><?php } ?>
     <script>
         const q = window.location.search;
         if (q.includes('err')) {
             Swal.fire({icon: 'error', title: 'Usuario o contraseña incorrectos'});
+        } else if (q.includes('clave')) {
+            Swal.fire({icon: 'success', title: 'Contraseña actualizada', text: 'Ya podés ingresar con la nueva contraseña.'});
         } else if (q.includes('bloq')) {
             Swal.fire({icon: 'warning', title: 'Demasiados intentos', text: 'Por seguridad, esperá 15 minutos o pedile a un administrador que revise tu usuario.'});
         } else if (q.includes('ini')) {

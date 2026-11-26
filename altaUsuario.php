@@ -1,5 +1,5 @@
 <?php #Llammo a cabecera, incluye el archivo cabecera.php desde template
-include('./Modelo/Conexion.php'); include_once('./Modelo/Auth.php'); requerirAdmin($conexion);
+include('./Modelo/Conexion.php'); include_once('./Modelo/Auth.php'); include_once('./Modelo/Moneda.php'); requerirAdmin($conexion);
 include ("./Modelo/Conexion.php");
 include('./Template/Cabecera.php');
 ?>
@@ -25,6 +25,7 @@ include('./Template/Cabecera.php');
                 <label for="name">Apellido:</label>
                 <input type="text" name="apellido" id="prov" required>
             </div>
+            <?php if (columnaExiste($conexion, 'usuarios', 'email')) { ?><div class="labelInput"><label for="email">Mail (para recuperar la contraseña):</label><input type="email" name="email" id="email" maxlength="120" placeholder="nombre@correo.com" required></div><?php } ?>
             <div class="labelInput">
                 <label for="name">Contraseña:</label>
                 <input type="password" name="pass" id="prov" required>

@@ -30,7 +30,7 @@ Requisitos: PHP 8.1 o superior con las extensiones `mysqli`, `curl`, `fileinfo` 
 3. Desde una consola, en la carpeta del sistema:
 
    ```
-   php instalacion/instalar.php --usuario=root --clave= --base=gafa --admin-clave=UnaClaveSegura --empresa="Estancia La Aurora"
+   php instalacion/instalar.php --usuario=root --clave= --base=gafa --admin-clave=UnaClaveSegura --admin-email=dueno@miempresa.com --empresa="Estancia La Aurora"
    ```
 
    Esto crea la base **vacía** (sin datos de ejemplo), el usuario administrador (`admin`, con la clave que indiques) y el archivo `config/base_datos.php`. Opciones: `--host`, `--puerto` (XAMPP suele usar 3306), `--admin-usuario`.
@@ -51,6 +51,7 @@ Si ya tenés el sistema con datos, ejecutá **una vez y en este orden** sobre tu
 5. `migracion_ventas.sql` — ventas e ingresos por proyecto
 6. `migracion_hacienda.sql` — movimientos de hacienda y stock
 7. `migracion_seguridad.sql` — bloqueo de intentos de ingreso y registro de actividad
+8. `migracion_recuperacion.sql` — mail de cada usuario y recuperación de contraseña (requiere MariaDB 10.5 o superior). Después, cargá el mail de cada usuario en Gestión → Usuarios.
 
 Cada pantalla nueva avisa con un mensaje claro si falta ejecutar alguna.
 
@@ -106,7 +107,7 @@ Necesita una base de prueba cargada con el volcado original y las migraciones, m
 
 ## Seguridad
 
-Bloqueo del usuario tras 5 intentos fallidos en 15 minutos (y de la IP tras 20), registro de actividad (Gestión → Registro de actividad, solo administrador), consultas preparadas en todo el sistema, claves con hash, permisos por rol en el servidor, subida de archivos validada (PDF y logo), exportaciones sin SQL del cliente. En Apache, `config/`, `storage/` y `uploads/` incluyen `.htaccess` que impide leer claves o copias por web y ejecutar código en `uploads/`. En otros servidores, bloqueá esas carpetas desde la configuración del servidor. **Si el sistema se publica en internet, usalo siempre con HTTPS** (certificado en el servidor): sin eso, las claves viajan sin cifrar. Si un usuario olvida su clave, un administrador la cambia desde Gestión → Usuarios (no hay recuperación automática por mail).
+Bloqueo del usuario tras 5 intentos fallidos en 15 minutos (y de la IP tras 20), registro de actividad (Gestión → Registro de actividad, solo administrador), consultas preparadas en todo el sistema, claves con hash, permisos por rol en el servidor, subida de archivos validada (PDF y logo), exportaciones sin SQL del cliente. En Apache, `config/`, `storage/` y `uploads/` incluyen `.htaccess` que impide leer claves o copias por web y ejecutar código en `uploads/`. En otros servidores, bloqueá esas carpetas desde la configuración del servidor. **Si el sistema se publica en internet, usalo siempre con HTTPS** (certificado en el servidor): sin eso, las claves viajan sin cifrar. **Recuperación de contraseña:** cada usuario tiene un mail. En el ingreso, "¿Olvidaste tu contraseña?" envía un enlace de un solo uso que vence en 60 minutos (solo se guarda su hash, máximo 3 pedidos por hora por usuario, y la respuesta es siempre la misma para no revelar qué usuarios existen). Requiere el envío de mails configurado (ver *Avisos por mail y WhatsApp*); en producción conviene fijar `url_base` en `config/notificaciones.php` para que los enlaces apunten a la dirección pública del sistema. El administrador también puede cambiar una clave desde Gestión → Usuarios.
 
 ## Estructura
 

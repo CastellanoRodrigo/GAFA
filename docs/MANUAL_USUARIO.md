@@ -53,7 +53,9 @@ Los nombres se guardan siempre con mayúscula inicial.
 ## Seguridad
 - Después de **5 intentos fallidos** el usuario queda bloqueado 15 minutos.
 - **Gestión → Registro de actividad** (solo administrador) muestra quién ingresó, quién intentó y falló, y quién cargó ventas, movimientos, cobros y usuarios.
-- Si alguien olvida su clave, el administrador la cambia en Gestión → Usuarios.
+- **Olvidé mi contraseña:** en la pantalla de ingreso tocá "¿Olvidaste tu contraseña?", escribí tu usuario o tu mail y te llega un enlace para elegir una contraseña nueva (mínimo 8 caracteres). El enlace sirve una sola vez y vence a la hora. Si no llega, revisá spam o pedile al administrador que verifique tu mail.
+- Cada usuario debe tener un mail cargado (Gestión → Usuarios). Sin mail no se puede recuperar la contraseña por este medio.
+- El administrador también puede cambiar la clave de cualquier usuario desde Gestión → Usuarios.
 
 ## Empresa (solo administrador)
 Gestión → **Empresa y marca**: nombre, logo, color principal y datos de contacto. El nombre y el logo aparecen en la cabecera, el pie, el ingreso y los mails de aviso.
