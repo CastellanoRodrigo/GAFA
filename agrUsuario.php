@@ -1,6 +1,7 @@
 <?php
 include('./Modelo/Conexion.php');
 include_once('./Modelo/Auth.php');
+include_once('./Modelo/Auditoria.php');
 requerirAdmin($conexion);
 
 $usuario = trim($_POST['usuario'] ?? '');
@@ -33,6 +34,7 @@ $stmt = $conexion->prepare("INSERT INTO usuarios VALUES (DEFAULT, ?, ?, ?, ?, ?,
 $stmt->bind_param("ssssii", $usuario, $hash, $nombre, $apellido, $tipo, $estado);
 $stmt->execute();
 $stmt->close();
+auditar($conexion, 'usuario_creado', $usuario . ' (rol ' . $tipo . ')');
 mysqli_close($conexion);
 header("Location: ./usuarios.php?ok");
 exit;

@@ -24,6 +24,12 @@ Cada parcela tiene su número y sus hectáreas. La pantalla muestra cuántas hec
 - **Ver compras:** filtrá por fechas, proveedor, número de factura o detalle. Cada compra muestra su moneda y los totales se separan en **pesos** y **dólares**.
 - **Asignar compras:** pasa una compra general a un proyecto.
 
+## Hacienda: stock y movimientos
+- **Proyectos → Hacienda: stock y movimientos** muestra el stock de cabezas de cada proyecto de hacienda (iniciales + entradas − salidas).
+- Dentro de un proyecto registrá **Compra** y **Nacimiento** (suman) o **Venta** y **Muerte** (restan). No se puede sacar más de lo que hay.
+- Si en una venta cargás el **importe y la moneda**, también queda registrada en Ventas y suma al resultado del proyecto.
+- Quitar un movimiento lo revierte (y borra la venta asociada). No se puede quitar una entrada si eso dejaría el stock en negativo.
+
 ## Ventas y resultados por proyecto
 - **Ventas → Ventas e ingresos:** registrá cada venta (proyecto, fecha, concepto, cantidad, importe, **moneda** y comprador). Los totales se muestran separados en pesos y en dólares. Se puede filtrar y exportar a Excel.
 - **Ventas → Resultados por proyecto:** muestra, por proyecto y por moneda, las ventas, el alquiler cobrado, los gastos (compras asignadas al proyecto) y el **resultado** (ganancia o pérdida). Tocá **Ver** para el detalle de un proyecto.
@@ -43,6 +49,11 @@ Cada parcela tiene su número y sus hectáreas. La pantalla muestra cuántas hec
 - **Lector:** solo consulta y exporta.
 
 Los nombres se guardan siempre con mayúscula inicial.
+
+## Seguridad
+- Después de **5 intentos fallidos** el usuario queda bloqueado 15 minutos.
+- **Gestión → Registro de actividad** (solo administrador) muestra quién ingresó, quién intentó y falló, y quién cargó ventas, movimientos, cobros y usuarios.
+- Si alguien olvida su clave, el administrador la cambia en Gestión → Usuarios.
 
 ## Empresa (solo administrador)
 Gestión → **Empresa y marca**: nombre, logo, color principal y datos de contacto. El nombre y el logo aparecen en la cabecera, el pie, el ingreso y los mails de aviso.

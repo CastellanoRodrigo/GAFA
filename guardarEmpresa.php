@@ -46,4 +46,6 @@ foreach (['lema', 'cuit', 'email', 'telefono', 'direccion'] as $campo) {
 }
 if ($logoNuevo !== null) guardarConfiguracion($conexion, 'logo', $logoNuevo);
 
+include_once('./Modelo/Auditoria.php');
+auditar($conexion, 'empresa_modificada', $nombre);
 volverEmpresa('ok');

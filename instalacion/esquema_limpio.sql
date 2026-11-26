@@ -1,5 +1,5 @@
 -- Esquema limpio de GAFA (sin datos de ejemplo)
--- Generada el 2026-11-24 08:15:07
+-- Generada el 2026-11-26 01:54:14
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS=0;
 SET SQL_MODE='NO_AUTO_VALUE_ON_ZERO';
@@ -10,14 +10,26 @@ CREATE TABLE `archivos` (
   `nombre` varchar(255) NOT NULL,
   `url` varchar(255) NOT NULL,
   PRIMARY KEY (`id_archivo`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_uca1400_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_uca1400_ai_ci;
+
+DROP TABLE IF EXISTS `auditoria`;
+CREATE TABLE `auditoria` (
+  `id_Auditoria` int(11) NOT NULL AUTO_INCREMENT,
+  `fecha` datetime NOT NULL DEFAULT current_timestamp(),
+  `usuario` varchar(60) DEFAULT NULL,
+  `accion` varchar(40) NOT NULL,
+  `detalle` varchar(255) DEFAULT NULL,
+  `ip` varchar(45) DEFAULT NULL,
+  PRIMARY KEY (`id_Auditoria`),
+  KEY `idx_auditoria_fecha` (`fecha`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
 DROP TABLE IF EXISTS `categoria`;
 CREATE TABLE `categoria` (
   `id_Categoria` int(11) NOT NULL AUTO_INCREMENT,
   `nombreCategoria` varchar(45) NOT NULL,
   PRIMARY KEY (`id_Categoria`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
 INSERT INTO `categoria` (`id_Categoria`, `nombreCategoria`) VALUES
 ('1', 'Ternero'),
@@ -25,8 +37,7 @@ INSERT INTO `categoria` (`id_Categoria`, `nombreCategoria`) VALUES
 ('3', 'Vaquillona'),
 ('4', 'Novillo'),
 ('5', 'Vaca'),
-('6', 'Toro'),
-('7', 'Test\'); DROP TABLE categoria;--');
+('6', 'Toro');
 
 DROP TABLE IF EXISTS `cobrosalquiler`;
 CREATE TABLE `cobrosalquiler` (
@@ -38,7 +49,7 @@ CREATE TABLE `cobrosalquiler` (
   PRIMARY KEY (`id_Cobro`),
   KEY `idx_cobro_contrato` (`id_DetalleAlquiler`),
   KEY `idx_cobro_vencimiento` (`fechaVencimiento`)
-) ENGINE=InnoDB AUTO_INCREMENT=28 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
 DROP TABLE IF EXISTS `compraproyecto`;
 CREATE TABLE `compraproyecto` (
@@ -47,7 +58,7 @@ CREATE TABLE `compraproyecto` (
   `id_Proyecto` int(11) DEFAULT NULL,
   `id_TipoCompra` int(11) NOT NULL,
   PRIMARY KEY (`id_CompraProyecto`)
-) ENGINE=InnoDB AUTO_INCREMENT=38 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=37 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
 DROP TABLE IF EXISTS `compras`;
 CREATE TABLE `compras` (
@@ -111,7 +122,7 @@ CREATE TABLE `detallealquiler` (
   `telefono` varchar(30) DEFAULT NULL,
   PRIMARY KEY (`id_DetalleAlquiler`),
   UNIQUE KEY `uq_alquiler_proyecto` (`id_Proyecto`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
 DROP TABLE IF EXISTS `detallehacienda`;
 CREATE TABLE `detallehacienda` (
@@ -175,6 +186,17 @@ INSERT INTO `formapago` (`id_Forma`, `formaPago`) VALUES
 ('2', 'Transferencia'),
 ('3', 'Cheque');
 
+DROP TABLE IF EXISTS `intentoslogin`;
+CREATE TABLE `intentoslogin` (
+  `id_Intento` int(11) NOT NULL AUTO_INCREMENT,
+  `usuario` varchar(60) NOT NULL,
+  `ip` varchar(45) NOT NULL,
+  `fecha` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id_Intento`),
+  KEY `idx_intento_usuario` (`usuario`,`fecha`),
+  KEY `idx_intento_ip` (`ip`,`fecha`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+
 DROP TABLE IF EXISTS `moneda`;
 CREATE TABLE `moneda` (
   `id_Moneda` int(11) NOT NULL AUTO_INCREMENT,
@@ -185,6 +207,20 @@ CREATE TABLE `moneda` (
 INSERT INTO `moneda` (`id_Moneda`, `moneda`) VALUES
 ('1', 'ARS'),
 ('2', 'USD');
+
+DROP TABLE IF EXISTS `movimientoshacienda`;
+CREATE TABLE `movimientoshacienda` (
+  `id_Movimiento` int(11) NOT NULL AUTO_INCREMENT,
+  `id_Proyecto` int(11) NOT NULL,
+  `fecha` date NOT NULL,
+  `tipo` varchar(15) NOT NULL COMMENT 'Compra, Nacimiento, Venta, Muerte',
+  `cantidad` int(11) NOT NULL,
+  `observaciones` varchar(255) DEFAULT NULL,
+  `id_Venta` int(11) DEFAULT NULL COMMENT 'Venta asociada en la tabla ventas, si se cargo el importe',
+  PRIMARY KEY (`id_Movimiento`),
+  KEY `idx_mov_proyecto` (`id_Proyecto`),
+  KEY `idx_mov_fecha` (`fecha`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
 DROP TABLE IF EXISTS `notificaciones`;
 CREATE TABLE `notificaciones` (
@@ -200,14 +236,14 @@ CREATE TABLE `notificaciones` (
   `fecha` datetime NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id_Notificacion`),
   KEY `idx_notif_ref` (`tipo`,`id_Referencia`,`canal`,`fecha`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
 DROP TABLE IF EXISTS `parcela`;
 CREATE TABLE `parcela` (
   `id_Parcela` int(11) NOT NULL AUTO_INCREMENT,
   `dimension` int(11) NOT NULL,
   PRIMARY KEY (`id_Parcela`)
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
 DROP TABLE IF EXISTS `proveedores`;
 CREATE TABLE `proveedores` (
@@ -225,7 +261,7 @@ CREATE TABLE `proyectos` (
   `cantidadHas` int(11) NOT NULL,
   `id_EstadoProyecto` int(11) NOT NULL,
   PRIMARY KEY (`id_Proyecto`)
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
 DROP TABLE IF EXISTS `tipo_usuario`;
 CREATE TABLE `tipo_usuario` (
@@ -261,7 +297,7 @@ CREATE TABLE `usuarios` (
   `id_tipoUsuario` int(11) NOT NULL,
   `id_EstadoUsuario` int(1) NOT NULL,
   PRIMARY KEY (`id_usuario`)
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
 DROP TABLE IF EXISTS `ventas`;
 CREATE TABLE `ventas` (

@@ -9,6 +9,7 @@ Hecho en PHP + MariaDB/MySQL. Se instala en una PC o servidor con XAMPP (Windows
 | Módulo | Qué resuelve |
 |---|---|
 | **Proyectos** | Siembra, hacienda y alquiler por parcela; estados; filtros; exportación a Excel con inversión total por moneda |
+| **Hacienda** | Stock de cabezas por proyecto: compras, nacimientos, ventas y muertes; una venta con importe también se registra en Ventas |
 | **Parcelas** | Hectáreas totales, en uso y libres de cada parcela |
 | **Compras y gastos** | Carga de facturas con PDF, asignación a proyectos, filtros, totales **separados en pesos y dólares**, Excel |
 | **Ventas y resultados** | Registro de ventas (cosecha, hacienda, otros) en pesos o dólares; **resultado por proyecto** = ventas + alquiler cobrado − compras asignadas, siempre separado por moneda; Excel |
@@ -48,6 +49,8 @@ Si ya tenés el sistema con datos, ejecutá **una vez y en este orden** sobre tu
 3. `migracion_notificaciones.sql` — contacto del inquilino y registro de avisos
 4. `migracion_roles_empresa.sql` — rol Operador y datos de la empresa
 5. `migracion_ventas.sql` — ventas e ingresos por proyecto
+6. `migracion_hacienda.sql` — movimientos de hacienda y stock
+7. `migracion_seguridad.sql` — bloqueo de intentos de ingreso y registro de actividad
 
 Cada pantalla nueva avisa con un mensaje claro si falta ejecutar alguna.
 
@@ -103,7 +106,7 @@ Necesita una base de prueba cargada con el volcado original y las migraciones, m
 
 ## Seguridad
 
-Consultas preparadas en todo el sistema, claves con hash, permisos por rol en el servidor, subida de archivos validada (PDF y logo), exportaciones sin SQL del cliente. En Apache, `config/`, `storage/` y `uploads/` incluyen `.htaccess` que impide leer claves o copias por web y ejecutar código en `uploads/`. En otros servidores, bloqueá esas carpetas desde la configuración del servidor.
+Bloqueo del usuario tras 5 intentos fallidos en 15 minutos (y de la IP tras 20), registro de actividad (Gestión → Registro de actividad, solo administrador), consultas preparadas en todo el sistema, claves con hash, permisos por rol en el servidor, subida de archivos validada (PDF y logo), exportaciones sin SQL del cliente. En Apache, `config/`, `storage/` y `uploads/` incluyen `.htaccess` que impide leer claves o copias por web y ejecutar código en `uploads/`. En otros servidores, bloqueá esas carpetas desde la configuración del servidor. **Si el sistema se publica en internet, usalo siempre con HTTPS** (certificado en el servidor): sin eso, las claves viajan sin cifrar. Si un usuario olvida su clave, un administrador la cambia desde Gestión → Usuarios (no hay recuperación automática por mail).
 
 ## Estructura
 

@@ -79,7 +79,7 @@ $rolNombre = nombreRol(rolUsuario($conexion));
                                 <?php if ($puedeEscribir) { ?><a class="nav-link " href="./detalleSiembra.php">Detalle Siembra</a><?php } ?>
                             </li>
                             <li>
-                                <?php if ($puedeEscribir) { ?><a class="nav-link " href="./detalleHacienda.php">Detalle Hacienda</a><?php } ?></li><li><?php if ($puedeEscribir) { ?><a class="nav-link " href="./detalleAlquiler.php">Detalle Alquiler</a><?php } ?></li><li><a class="nav-link " href="./alquileres.php">Alquileres y cobros</a>
+                                <?php if ($puedeEscribir) { ?><a class="nav-link " href="./detalleHacienda.php">Detalle Hacienda</a><?php } ?></li><li><?php if ($puedeEscribir) { ?><a class="nav-link " href="./detalleAlquiler.php">Detalle Alquiler</a><?php } ?></li><li><a class="nav-link " href="./movimientosHacienda.php">Hacienda: stock y movimientos</a></li><li><a class="nav-link " href="./alquileres.php">Alquileres y cobros</a>
                             </li>
 							<li>
                                 <a class="nav-link " href="./todosLosProyectos.php">Listado de Proyectos</a>
@@ -114,7 +114,7 @@ $rolNombre = nombreRol(rolUsuario($conexion));
                                 <?php if ($esAdminUsr) { ?><a class="nav-link " href="./proveedores.php">Proveedores</a><?php } ?>
                             </li>
 							<li>
-                                <?php if ($esAdminUsr) { ?><a class="nav-link " href="./categorias.php">Categorias</a><?php } ?></li><li><a class="nav-link " href="./parcelas.php">Parcelas</a><?php if ($esAdminUsr) { ?></li><li><a class="nav-link " href="./empresa.php">Empresa y marca</a></li><li><a class="nav-link " href="./respaldo.php">Copias de seguridad</a><?php } ?>
+                                <?php if ($esAdminUsr) { ?><a class="nav-link " href="./categorias.php">Categorias</a><?php } ?></li><li><a class="nav-link " href="./parcelas.php">Parcelas</a><?php if ($esAdminUsr) { ?></li><li><a class="nav-link " href="./empresa.php">Empresa y marca</a></li><li><a class="nav-link " href="./respaldo.php">Copias de seguridad</a></li><li><a class="nav-link " href="./auditoria.php">Registro de actividad</a><?php } ?>
                             </li>
                         </ul>
                     </li>
@@ -223,6 +223,7 @@ $rolNombre = nombreRol(rolUsuario($conexion));
 							<?php if ($puedeEscribir) { ?><a href="./detalleSiembra.php">Detalle siembra</a><?php } ?>
 							<?php if ($puedeEscribir) { ?><a href="./detalleHacienda.php">Detalle Hacienda</a><?php } ?>
 							<?php if ($puedeEscribir) { ?><a href="./detalleAlquiler.php">Detalle Alquiler</a><?php } ?>
+							<a href="./movimientosHacienda.php">Hacienda: stock y movimientos</a>
 							<a href="./alquileres.php">Alquileres y cobros</a>
 							<a href="./avisos.php">Avisos de vencimientos</a>
 							<a href="./ventas.php">Ventas e ingresos</a>

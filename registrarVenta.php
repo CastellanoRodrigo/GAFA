@@ -2,6 +2,7 @@
 include('./Modelo/Conexion.php');
 include_once('./Modelo/Auth.php');
 include_once('./Modelo/Ventas.php');
+include_once('./Modelo/Auditoria.php');
 requerirEscritura($conexion);
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !ventasListas($conexion)) {
@@ -17,6 +18,7 @@ if ($accion === 'eliminar') {
     $stmt->execute();
     $borrada = $stmt->affected_rows > 0;
     $stmt->close();
+    if ($borrada) auditar($conexion, 'venta_quitada', 'Venta N° ' . $id);
     header("Location: ./ventas.php?" . ($borrada ? 'borrada' : 'error=datos'));
     exit;
 }
@@ -56,5 +58,6 @@ $stmt = $conexion->prepare("INSERT INTO ventas (id_Proyecto, fecha, concepto, ca
 $stmt->bind_param("issdsdisss", $proyecto, $fecha, $concepto, $cantidad, $un, $importe, $moneda, $comp, $nro, $ob);
 $stmt->execute();
 $stmt->close();
+auditar($conexion, 'venta_registrada', $concepto . ' - ' . $importe . ' (moneda ' . $moneda . ') - proyecto ' . $proyecto);
 header("Location: ./ventas.php?ok");
 exit;

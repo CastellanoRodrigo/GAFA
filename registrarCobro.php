@@ -2,6 +2,7 @@
 include('./Modelo/Conexion.php');
 include_once('./Modelo/Auth.php');
 include_once('./Modelo/Alquileres.php');
+include_once('./Modelo/Auditoria.php');
 requerirEscritura($conexion);
 
 $idCobro = (int)($_POST['cobro'] ?? 0);
@@ -33,6 +34,7 @@ if ($accion === 'cobrar') {
 }
 $stmt->execute();
 $stmt->close();
+auditar($conexion, $accion === 'cobrar' ? 'cobro_registrado' : 'cobro_deshecho', 'Cuota N° ' . $idCobro . ' del contrato ' . $contrato);
 mysqli_close($conexion);
 header("Location: ./cobrosAlquiler.php?no=" . $contrato . "&ok");
 exit;

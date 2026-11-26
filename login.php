@@ -37,6 +37,8 @@ try {
         const q = window.location.search;
         if (q.includes('err')) {
             Swal.fire({icon: 'error', title: 'Usuario o contraseña incorrectos'});
+        } else if (q.includes('bloq')) {
+            Swal.fire({icon: 'warning', title: 'Demasiados intentos', text: 'Por seguridad, esperá 15 minutos o pedile a un administrador que revise tu usuario.'});
         } else if (q.includes('ini')) {
             Swal.fire({icon: 'warning', title: 'Usuario inactivo', text: 'Contacte al administrador.'});
         }

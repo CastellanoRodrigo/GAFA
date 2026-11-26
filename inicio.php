@@ -13,12 +13,27 @@ include('./Template/Cabecera.php');
     <a class="acceso" href="./todosLosProyectos.php">
         <span class="icono">🌾</span>
         <h3>Proyectos</h3>
-        <p>Siembra y hacienda por parcela</p>
+        <p>Siembra, hacienda y alquiler por parcela</p>
+    </a>
+    <a class="acceso" href="./movimientosHacienda.php">
+        <span class="icono">🐄</span>
+        <h3>Hacienda</h3>
+        <p>Stock de cabezas y movimientos</p>
     </a>
     <a class="acceso" href="./verCompras.php">
         <span class="icono">🧾</span>
         <h3>Compras y gastos</h3>
         <p>Facturas y proveedores</p>
+    </a>
+    <a class="acceso" href="./ventas.php">
+        <span class="icono">💰</span>
+        <h3>Ventas</h3>
+        <p>Ingresos por proyecto</p>
+    </a>
+    <a class="acceso" href="./resultados.php">
+        <span class="icono">📈</span>
+        <h3>Resultados</h3>
+        <p>Ganancia o pérdida por proyecto</p>
     </a>
     <a class="acceso" href="./avisos.php">
         <span class="icono">🔔</span>
@@ -28,12 +43,20 @@ include('./Template/Cabecera.php');
     <a class="acceso" href="./estadisticas.php">
         <span class="icono">📊</span>
         <h3>Estadísticas</h3>
-        <p>Inversión y resultados</p>
+        <p>Inversión, ventas y resultados</p>
     </a>
-    <a class="acceso" href="./proveedores.php">
-        <span class="icono">🤝</span>
+    <?php if ($esAdminUsr) { ?>
+    <a class="acceso" href="./usuarios.php">
+        <span class="icono">⚙️</span>
         <h3>Gestión</h3>
-        <p>Usuarios, proveedores y categorías</p>
+        <p>Usuarios, proveedores, empresa y copias</p>
     </a>
+    <?php } else { ?>
+    <a class="acceso" href="./parcelas.php">
+        <span class="icono">🗺️</span>
+        <h3>Parcelas</h3>
+        <p>Hectáreas en uso y libres</p>
+    </a>
+    <?php } ?>
 </section>
 <?php include('./Template/Pie.php'); ?>

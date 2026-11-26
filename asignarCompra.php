@@ -1,6 +1,7 @@
 <?php
 include('./Modelo/Conexion.php');
 include_once('./Modelo/Auth.php');
+include_once('./Modelo/Auditoria.php');
 requerirLogin();
 
 // Procesar la asignacion ANTES de imprimir nada (para poder redirigir)
@@ -41,6 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     $stmt->execute();
     $stmt->close();
+    auditar($conexion, 'compra_asignada', 'Compra ' . $idCompra . ' al proyecto ' . $idProyecto);
     mysqli_close($conexion);
     header("Location: ./asignarCompra.php?ok");
     exit;

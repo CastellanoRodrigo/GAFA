@@ -1,6 +1,7 @@
 <?php
 session_start();
 include("../Modelo/Conexion.php");
+include_once("../Modelo/Auditoria.php");
 
 if (!isset($_POST['btningresar'])) {
     header("location: ../login.php");
@@ -9,6 +10,13 @@ if (!isset($_POST['btningresar'])) {
 
 $usuario = trim($_POST['usuario'] ?? '');
 $password = $_POST['password'] ?? '';
+
+if (loginBloqueado($conexion, $usuario)) {
+    auditar($conexion, 'login_bloqueado', 'Demasiados intentos fallidos', $usuario);
+    mysqli_close($conexion);
+    header("location: ../login.php?bloq");
+    exit;
+}
 
 $stmt = $conexion->prepare("SELECT id_usuario, password, id_EstadoUsuario FROM usuarios WHERE usuario = ?");
 $stmt->bind_param("s", $usuario);
@@ -26,6 +34,8 @@ if ($row) {
 }
 
 if (!$valida) {
+    registrarIntentoFallido($conexion, $usuario);
+    auditar($conexion, 'login_fallido', 'Clave o usuario incorrectos', $usuario);
     mysqli_close($conexion);
     header("location: ../login.php?err");
     exit;
@@ -48,6 +58,8 @@ if (!$esHash) {
 
 session_regenerate_id(true);
 $_SESSION['usuario'] = $usuario;
+limpiarIntentos($conexion, $usuario);
+auditar($conexion, 'login', 'Ingreso al sistema', $usuario);
 mysqli_close($conexion);
 header("location: ../login.php?ok");
 exit;

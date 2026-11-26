@@ -661,6 +661,77 @@ $dbV->query("DELETE FROM ventas WHERE concepto LIKE 'TEST%'");
 peticion("$base/registrarCobro.php", ['cobro' => $idCobro, 'accion' => 'deshacer'], $cookieAdmin);
 $dbV->close();
 
+// 4l. Movimientos de hacienda (requiere migracion_hacienda.sql)
+$dbH = new mysqli('127.0.0.1', 'root', '', 'donjuanbd', 3307);
+$r = peticion("$base/movimientosHacienda.php", null, $cookieAdmin);
+prueba('movimientosHacienda lista el stock sin errores PHP', $r['code'] === 200 && strpos($r['body'], 'STOCK DE CABEZAS') !== false && !preg_match('/Fatal error|Warning:|Notice:/', $r['body']));
+prueba('movimientosHacienda sin sesion redirige a login', strpos(peticion("$base/movimientosHacienda.php")['loc'], 'login.php') !== false);
+peticion("$base/agrProyecto.php", ['btn1' => '1', 'cmbparcela1' => 3, 'nombre1' => 'Hac Test', 'cmbTipoProyecto1' => 1, 'cantHas1' => 10, 'cmbEstado1' => 2], $cookieAdmin);
+$r = peticion("$base/todosLosProyectos.php?q=" . urlencode('Hac Test'), null, $cookieAdmin);
+$pHac = preg_match('~detalleProyecto\.php\?no=(\d+)~', $r['body'], $mh) ? (int)$mh[1] : 0;
+prueba('se creo un proyecto de hacienda de prueba y el listado ofrece Movimientos', $pHac > 0 && strpos($r['body'], "movimientosHacienda.php?no=$pHac") !== false);
+$mov = function (array $d, ?string $cookie = null) use ($base, $cookieAdmin) { return peticion("$base/registrarMovimiento.php", $d, $cookie ?? $cookieAdmin); };
+$mb = ['accion' => 'crear', 'proyecto' => $pHac, 'fecha' => '2030-03-01', 'tipo' => 'Compra', 'cantidad' => 100, 'observaciones' => 'lote inicial'];
+$stockHtml = function () use ($base, $cookieAdmin, $pHac) { return peticion("$base/movimientosHacienda.php?no=$pHac", null, $cookieAdmin)['body']; };
+prueba('registrarMovimiento sin sesion redirige a login', strpos(peticion("$base/registrarMovimiento.php", $mb)['loc'], 'login.php') !== false);
+prueba('una salida sin stock se rechaza (error=stock)', strpos($mov(['tipo' => 'Venta', 'cantidad' => 10] + $mb)['loc'], 'error=stock') !== false);
+prueba('cantidad 0 -> error cantidad', strpos($mov(['cantidad' => 0] + $mb)['loc'], 'error=cantidad') !== false);
+prueba('tipo de movimiento inventado -> error datos', strpos($mov(['tipo' => 'Regalo'] + $mb)['loc'], 'error=datos') !== false);
+prueba('fecha invalida -> error datos', strpos($mov(['fecha' => '2030-02-31'] + $mb)['loc'], 'error=datos') !== false);
+prueba('movimiento en un proyecto que no es de hacienda -> error proyecto', strpos($mov(['proyecto' => $pVig] + $mb)['loc'], 'error=proyecto') !== false);
+prueba('compra de 100 cabezas', strpos($mov($mb)['loc'], 'ok') !== false);
+prueba('nacimiento de 20 cabezas', strpos($mov(['tipo' => 'Nacimiento', 'cantidad' => 20] + $mb)['loc'], 'ok') !== false);
+prueba('muerte de 5 cabezas', strpos($mov(['tipo' => 'Muerte', 'cantidad' => 5] + $mb)['loc'], 'ok') !== false);
+prueba('el stock es 115 (100 + 20 - 5)', strpos($stockHtml(), '<span class="num">115</span>') !== false);
+prueba('venta con mas cabezas que el stock -> error stock', strpos($mov(['tipo' => 'Venta', 'cantidad' => 1000] + $mb)['loc'], 'error=stock') !== false);
+prueba('venta de 30 cabezas con importe en pesos', strpos($mov(['tipo' => 'Venta', 'cantidad' => 30, 'importe' => '3000', 'moneda' => 1, 'comprador' => 'maría lópez'] + $mb)['loc'], 'ok') !== false);
+$h = $stockHtml();
+prueba('el stock baja a 85 y el movimiento muestra su ingreso en pesos', strpos($h, '<span class="num">85</span>') !== false && strpos($h, '$ 3.000,00') !== false);
+$vr = peticion("$base/ventas.php?proyecto=$pHac", null, $cookieAdmin)['body'];
+prueba('la venta de hacienda tambien figura en Ventas (comprador con mayuscula)', strpos($vr, 'Venta de 30 cabezas de hacienda') !== false && strpos($vr, 'María López') !== false);
+prueba('el resultado del proyecto de hacienda incluye ese ingreso', strpos(peticion("$base/resultados.php?no=$pHac", null, $cookieAdmin)['body'], '$ 3.000,00') !== false);
+$e = peticion("$base/estadisticas.php", null, $cookieAdmin);
+prueba('estadisticas muestra resultado total por moneda y stock de hacienda', $e['code'] === 200 && strpos($e['body'], 'Resultado total en') !== false && strpos($e['body'], 'Cabezas de hacienda en stock') !== false && !preg_match('/Fatal error|Warning:|Notice:/', $e['body']));
+$listado = peticion("$base/movimientosHacienda.php", null, $cookieAdmin)['body'];
+prueba('el listado general muestra el proyecto con su stock', strpos($listado, 'Hac Test') !== false);
+preg_match('~name="movimiento" value="(\d+)"~', $h, $mm); // el mas reciente es la venta
+$idMovCompra = (int)$dbH->query("SELECT id_Movimiento FROM movimientoshacienda WHERE id_Proyecto = $pHac AND tipo = 'Compra'")->fetch_row()[0];
+prueba('no se puede quitar una compra si el stock quedaria negativo', strpos($mov(['accion' => 'eliminar', 'movimiento' => $idMovCompra])['loc'], 'error=stock') !== false);
+prueba('quitar la venta devuelve las cabezas y borra el ingreso de Ventas', strpos($mov(['accion' => 'eliminar', 'movimiento' => (int)($mm[1] ?? 0)])['loc'], 'borrado') !== false
+    && strpos($stockHtml(), '<span class="num">115</span>') !== false
+    && strpos(peticion("$base/ventas.php?proyecto=$pHac", null, $cookieAdmin)['body'], 'Venta de 30 cabezas') === false);
+prueba('el Operador puede registrar movimientos', strpos($mov(['tipo' => 'Nacimiento', 'cantidad' => 1] + $mb, $cookieOp)['loc'], 'ok') !== false);
+prueba('el Lector no puede registrar ni quitar movimientos (403)', $mov($mb, $cookieLector)['code'] === 403 && $mov(['accion' => 'eliminar', 'movimiento' => $idMovCompra], $cookieLector)['code'] === 403);
+$rl = peticion("$base/movimientosHacienda.php?no=$pHac", null, $cookieLector);
+prueba('el Lector consulta el stock sin formulario', $rl['code'] === 200 && strpos($rl['body'], 'action="./registrarMovimiento.php"') === false);
+$dbH->query("DELETE FROM ventas WHERE id_Proyecto = $pHac");
+$dbH->query("DELETE FROM movimientoshacienda WHERE id_Proyecto = $pHac");
+
+// 4m. Pantalla de inicio segun el rol
+$ia = peticion("$base/inicio.php", null, $cookieAdmin)['body'];
+$il = peticion("$base/inicio.php", null, $cookieLector)['body'];
+prueba('el inicio del Administrador ofrece Gestion y los accesos nuevos', strpos($ia, 'Usuarios, proveedores, empresa y copias') !== false && strpos($ia, 'href="./movimientosHacienda.php"') !== false
+    && strpos($ia, 'href="./ventas.php"') !== false && strpos($ia, 'href="./resultados.php"') !== false);
+prueba('el inicio del Lector no muestra Gestion y ofrece Parcelas', strpos($il, 'Usuarios, proveedores, empresa y copias') === false && strpos($il, '<h3>Parcelas</h3>') !== false);
+
+// 4n. Seguridad: bloqueo de intentos y registro de actividad (requiere migracion_seguridad.sql)
+peticion("$base/agrUsuario.php", ['usuario' => 'bloq2', 'pass' => 'Clave1234', 'nombre' => 'x', 'apellido' => 'y', 'tipo' => 2, 'estado' => 1], $cookieAdmin);
+prueba('el usuario de prueba puede ingresar antes del bloqueo', strpos(login($base, 'bloq2', 'Clave1234')['loc'], '?ok') !== false);
+for ($i = 0; $i < 5; $i++) login($base, 'bloq2', 'incorrecta');
+prueba('tras 5 intentos fallidos el usuario queda bloqueado (aun con la clave correcta)', strpos(login($base, 'bloq2', 'Clave1234')['loc'], '?bloq') !== false);
+prueba('el bloqueo de un usuario no afecta a los demas', strpos(login($base, 'admin', '123')['loc'], '?ok') !== false);
+$dbH->query("DELETE FROM intentoslogin");
+prueba('al pasar el bloqueo el usuario vuelve a ingresar', strpos(login($base, 'bloq2', 'Clave1234')['loc'], '?ok') !== false);
+$au = peticion("$base/auditoria.php", null, $cookieAdmin);
+prueba('el registro de actividad muestra ingresos, fallos, ventas y movimientos', $au['code'] === 200 && strpos($au['body'], 'login_fallido') !== false && strpos($au['body'], 'login_bloqueado') !== false
+    && strpos($au['body'], 'venta_registrada') !== false && strpos($au['body'], 'hacienda_compra') !== false && strpos($au['body'], 'usuario_creado') !== false);
+prueba('el registro de actividad filtra por usuario', strpos(peticion("$base/auditoria.php?usuario=bloq2", null, $cookieAdmin)['body'], 'venta_registrada') === false);
+prueba('el registro de actividad es solo para el Administrador (Operador y Lector 403)', peticion("$base/auditoria.php", null, $cookieOp)['code'] === 403 && peticion("$base/auditoria.php", null, $cookieLector)['code'] === 403);
+prueba('el registro de actividad sin sesion redirige a login', strpos(peticion("$base/auditoria.php")['loc'], 'login.php') !== false);
+$dbH->query("DELETE FROM usuarios WHERE usuario = 'bloq2'");
+$dbH->query("DELETE FROM intentoslogin");
+$dbH->close();
+
 // 5. Subida de PDF
 $tmp = tempnam(sys_get_temp_dir(), 'pdf');
 file_put_contents($tmp, "%PDF-1.4\n%%EOF");
