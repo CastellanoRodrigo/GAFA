@@ -487,7 +487,7 @@ prueba('la cabecera muestra el nombre de la empresa', strpos($b, '<span class="m
 prueba('la cabecera muestra el logo propio y aplica el color elegido', strpos($b, 'uploads/logo.png') !== false && strpos($b, '--verde: #2a6bb5') !== false);
 prueba('el pie muestra la version y la empresa', strpos($b, 'GAFA v1.0.0 · Estancia La Aurora S.A.') !== false);
 prueba('el saludo de inicio usa el nombre de la empresa', strpos($b, 'Todo el campo de Estancia La Aurora S.A.') !== false);
-prueba('el login muestra la empresa', strpos(peticion("$base/login.php")['body'], 'Sistema GAFA · Estancia La Aurora S.A.') !== false);
+prueba('el login muestra solo "Sistema GAFA" sin el nombre de la empresa', strpos(peticion("$base/login.php")['body'], 'Sistema GAFA</p>') !== false && strpos(peticion("$base/login.php")['body'], 'Estancia La Aurora') === false);
 prueba('el logo se sirve como imagen', ($rl = peticion("$base/uploads/logo.png"))['code'] === 200 && stripos($rl['headers'], 'image/png') !== false);
 $ant = $contarMails();
 $enviar(['accion' => 'uno', 'tipo' => $tipoVen, 'ref' => $refVen, 'canal' => 'email']);

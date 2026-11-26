@@ -38,6 +38,6 @@ try { $emp = empresa($conexion)['nombre']; } catch (Throwable $e) {}
             <p style="text-align:center;"><a style="color:#fff;" href="./login.php">Volver</a></p>
         <?php } ?>
     </form>
-    <?php if ($emp !== '') { ?><p class="pie-login">Sistema GAFA · <?php echo htmlspecialchars($emp, ENT_QUOTES, 'UTF-8'); ?></p><?php } ?>
+    <p class="pie-login">Sistema GAFA</p>
 </body>
 </html>

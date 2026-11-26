@@ -63,6 +63,6 @@ try { $emp = empresa($conexion)['nombre']; } catch (Throwable $e) {}
             <input class="btn" type="submit" value="Guardar contraseña">
         <?php } ?>
     </form>
-    <?php if ($emp !== '') { ?><p class="pie-login">Sistema GAFA · <?php echo htmlspecialchars($emp, ENT_QUOTES, 'UTF-8'); ?></p><?php } ?>
+    <p class="pie-login">Sistema GAFA</p>
 </body>
 </html>
