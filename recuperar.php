@@ -20,6 +20,9 @@ try { $emp = empresa($conexion)['nombre']; } catch (Throwable $e) {}
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" type="image/png" href="imgs/GAFA_icono_oscuro.png">
     <link rel="stylesheet" href="Css/estiloLogin.css">
+    <link rel="manifest" href="manifest.php">
+    <meta name="theme-color" content="#0a6111">
+    <link rel="apple-touch-icon" href="pwa/apple-touch-icon.png">
     <title>GAFA - Recuperar contraseña</title>
 </head>
 <body>

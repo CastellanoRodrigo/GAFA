@@ -1,0 +1,103 @@
+/* ==========================================================
+   Version celular de GAFA (se carga al final: pisa lo anterior)
+   ========================================================== */
+html { -webkit-text-size-adjust: 100%; }
+img, svg, canvas, video { max-width: 100%; }
+body { overflow-x: hidden; }
+
+/* Zonas tactiles comodas y sin zoom automatico de iOS al escribir */
+@media (max-width: 991px) {
+	.btn, .nav-link, .dropdown-item, select, input, textarea { min-height: 44px; }
+	input[type="text"], input[type="password"], input[type="number"], input[type="date"],
+	input[type="email"], input[type="search"], select, textarea { font-size: 16px !important; }
+	.hea-pri .navbar-collapse { max-height: 75vh; overflow-y: auto; }
+	.hea-pri .exit { width: 100%; justify-content: space-between; padding: 6px 4px 10px; }
+}
+
+@media (max-width: 768px) {
+	.titPrincipal { padding: 6px 10px !important; }
+	.centrado, .centrado--form { padding-left: 10px; padding-right: 10px; }
+	.filtros-listado, .barra-listado, .resumen-alquiler, .accesos { width: 96vw; }
+	.filtros-listado { padding: 12px; }
+	.filtros-listado select, .filtros-listado input, .filtros-listado .campo-ancho { width: 100% !important; }
+	.filtros-listado > div { width: 100%; }
+	.filtros-botones .btn { flex: 1; }
+	.barra-acciones { margin-left: 0; width: 100%; }
+	.barra-acciones .btn { flex: 1; }
+	.accesos { margin-top: -40px; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+	.acceso { padding: 14px 8px; }
+	.acceso p { display: none; }
+	.portada-logo { width: 150px; }
+	h1 { font-size: 1.5em; }
+	form .btn[type="submit"], form input.btn { width: 100%; }
+	canvas { height: auto !important; }
+	.centrado--stats--cont--detail { width: 100% !important; height: 320px !important; box-shadow: 0 2px 8px rgba(60,50,20,.15) !important; }
+	.centrado--stats--cont { gap: 14px; padding: 0 8px; width: 100% !important; }
+	.centrado--stats { width: 100%; }
+}
+
+/* Tablas de listado -> tarjetas (el JS pone data-label con el titulo de cada columna) */
+@media (max-width: 640px) {
+	table.tabla-movil, table.tabla-movil thead, table.tabla-movil tbody, table.tabla-movil tr,
+	table.tabla-movil th, table.tabla-movil td { display: block !important; width: 100% !important; }
+	table.tabla-movil { background: transparent; box-shadow: none; border: none; overflow: visible !important; }
+	table.tabla-movil thead { position: absolute; left: -9999px; top: -9999px; }
+	table.tabla-movil tr {
+		background: #fff !important; border: 1px solid var(--borde, #e3d9bd); border-radius: 12px;
+		box-shadow: 0 2px 8px rgba(60,50,20,.1); margin: 0 0 12px; padding: 6px 4px; overflow: hidden;
+	}
+	table.tabla-movil td {
+		display: flex !important; justify-content: space-between; align-items: center; gap: 12px;
+		min-width: 0 !important; text-align: right; padding: 8px 12px !important;
+		border-bottom: 1px solid #f0e9d4 !important; word-break: break-word;
+	}
+	table.tabla-movil td:last-child { border-bottom: none !important; }
+	table.tabla-movil td::before {
+		content: attr(data-label); font-weight: 700; color: #4a3517; text-align: left;
+		flex: 0 0 38%; font-size: .85rem;
+	}
+	table.tabla-movil td[data-label=""]::before { display: none; }
+	table.tabla-movil td[data-label=""] { justify-content: center; }
+	table.tabla-movil td .btn { flex: 0 0 auto; padding: .5rem 1.2rem !important; font-size: .9rem !important; line-height: 1.2; }
+	table.tabla-movil td select.sel-proyecto { min-width: 0; }
+	.col-factura { min-width: 0; white-space: normal; }
+}
+
+/* Barra inferior de accesos rapidos (solo celular, y solo con sesion iniciada) */
+.barra-movil { display: none; }
+@media (max-width: 768px) {
+	body.con-barra-movil { padding-bottom: calc(66px + env(safe-area-inset-bottom)); }
+	.barra-movil {
+		display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 1030;
+		background: #ffffff; border-top: 1px solid #d9cfae; box-shadow: 0 -3px 14px rgba(0,0,0,.14);
+		padding-bottom: env(safe-area-inset-bottom);
+	}
+	.barra-movil a {
+		flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+		gap: 2px; padding: 8px 2px; min-height: 58px; color: #4a3517; font-size: .72rem; font-weight: 700; text-decoration: none;
+	}
+	.barra-movil a { position: relative; }
+	.barra-movil a .ico { font-size: 1.35rem; line-height: 1; }
+	.barra-movil a .badge-avisos { position: absolute; top: 4px; left: calc(50% + 6px); font-size: .65rem; padding: 1px 6px; }
+	.barra-movil a.activo { color: var(--verde, #0a6111); box-shadow: inset 0 3px 0 var(--verde, #0a6111); }
+}
+
+/* Aviso de "instalar" */
+.aviso-instalar {
+	position: fixed; left: 10px; right: 10px; bottom: 76px; z-index: 1040; background: #16301a; color: #fff;
+	border-radius: 14px; padding: 12px 14px; display: none; gap: 10px; align-items: center; box-shadow: 0 8px 24px rgba(0,0,0,.35);
+}
+.aviso-instalar.visible { display: flex; }
+.aviso-instalar span { flex: 1; font-size: .92rem; }
+.aviso-instalar button { border: 0; border-radius: 999px; padding: 8px 16px; font-weight: 700; min-height: 40px; }
+.aviso-instalar .si { background: #e7c15a; color: #1b1b18; }
+.aviso-instalar .no { background: transparent; color: #fff; }
+
+/* Sin conexion */
+.aviso-offline {
+	position: fixed; top: 0; left: 0; right: 0; z-index: 2000; background: #a8442f; color: #fff;
+	text-align: center; padding: 6px 10px; font-size: .9rem; font-weight: 700; display: none;
+}
+body.sin-conexion .aviso-offline { display: block; }
+
+@media print { .barra-movil, .aviso-instalar, .aviso-offline { display: none !important; } }

@@ -848,6 +848,7 @@ form{
 	justify-content: center;
 	gap: 20px;
 	width: 650px; 
+	max-width: 100%;
 	height: 400px;
 	box-shadow: 5px 5px 5px 5px rgb(148, 148, 148);
 }
@@ -857,115 +858,26 @@ form{
 	display: none;
 }
 
+/* Celular: el ancho lo da la pantalla (antes se forzaba a 320px; ver Css/movil.css para el resto) */
 @media screen and (max-width: 768px){
-	body{
-		width: 320px !important;
-	}
-	.titPrincipal{
-		width: 300px;
-	}
-	.navbar{
-		padding: 5px;
-		width: 320px;
-	}
-	.navpri{
-		padding: 0px;
-	}
-	.nav-link{
-		padding: 15px;
-	}
-	.hea-pri{
-		width: 300px;
-	}
-
-
-
-	.contenedor{
-		width: 320px;
-		margin: 0px;
-	}
-	.centrado{
-		width: 320px;
-	}
-	.centrado--titulo{
-		width: 300px;
-		text-align: center;
-	}
-	.centrado--titulo h1{
-		font-size: 20px;
-	}
-	.centrado--parcelas{
-		width: 320px;
-		flex-wrap: wrap;
-		justify-content: center;
-		align-items: center;
-		margin-bottom: 20px;
-	}
-	.containerMap img{
-		width: 100%;
-	}
-	.centrado--table{
-		width: 300px;
-	}
-	.centrado--notif{
-		width: 300px;
-		max-height: 300px;
-	}
-	.change{
-		text-align: right;
-		height: 53px;
-		display: flex;
-		justify-content: center;
-		align-items: center;
-	}
-
-	form{
-		width: 300px !important;
-	}
-	.centrado--form{
-		width: 100%;
-	}
-	.labelInput{
-		flex-direction: column;
-		align-items: flex-start;
-	}
-	#archivo{
-		width: 100%;
-		display: flex;
-		flex-direction: column;
-	}
-
-
-	table{
-		width: 300px !important;
-        display: block;
-        overflow-x: auto;
-        overflow: auto;
-    }
-	th{
-		padding: 5px;
-	}
-	td{
-		min-width: 100px;
-		padding: 5px;
-	}
-
-
-
-	.filtros{
-		height: auto;
-		flex-direction: column;
-	}
-	
-	.filtros-listado{
-
-		flex-direction: column;
-		gap: 10px;
-	}
-
-	.filtros-listado div{
-		display: flex;
-		flex-direction: column;
-	}
-	
+	body{ width: 100%; overflow-x: hidden; }
+	.titPrincipal, .hea-pri, .navbar, .contenedor, .centrado, .centrado--titulo,
+	.centrado--parcelas, .centrado--table, .centrado--notif, .centrado--form, form{ width: 100% !important; max-width: 100%; }
+	.navbar{ padding: 5px; }
+	.navpri{ padding: 0; }
+	.nav-link{ padding: 15px; }
+	.contenedor{ margin: 0; }
+	.centrado--titulo{ text-align: center; }
+	.centrado--titulo h1{ font-size: 20px; }
+	.centrado--parcelas{ flex-wrap: wrap; justify-content: center; align-items: center; margin-bottom: 20px; }
+	.containerMap img{ width: 100%; }
+	.centrado--notif{ max-height: 300px; }
+	.change{ text-align: right; height: 53px; display: flex; justify-content: center; align-items: center; }
+	.labelInput{ flex-direction: column; align-items: flex-start; }
+	#archivo{ width: 100%; display: flex; flex-direction: column; }
+	th{ padding: 5px; }
+	td{ padding: 5px; }
+	.filtros{ height: auto; flex-direction: column; }
+	.filtros-listado{ flex-direction: column; gap: 10px; }
+	.filtros-listado div{ display: flex; flex-direction: column; }
 }

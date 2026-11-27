@@ -1,5 +1,5 @@
 <?php
-session_start();
+if (session_status() === PHP_SESSION_NONE) session_start();
 include ("./Modelo/Conexion.php");
 include_once('./Modelo/Auth.php');
 include_once('./Modelo/Notificaciones.php');
@@ -35,7 +35,13 @@ $rolNombre = nombreRol(rolUsuario($conexion));
 <head>
 	<meta charset="UTF-8">
 	<link rel="shortcut icon" type="image/png" href="imgs/GAFA_icono_oscuro.png">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+	<link rel="manifest" href="manifest.php">
+	<meta name="theme-color" content="#0a6111">
+	<meta name="mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-title" content="GAFA">
+	<link rel="apple-touch-icon" href="pwa/apple-touch-icon.png">
 	<meta http-equiv="X-UA-Compatible" content="ie=edge">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
@@ -45,11 +51,13 @@ $rolNombre = nombreRol(rolUsuario($conexion));
     <script src="https://code.jquery.com/jquery-3.6.4.js" integrity="sha256-a9jBBRygX1Bh5lt8GZjXDzyOB+bWve9EiO7tROUtj/E=" crossorigin="anonymous"></script>
 	<link rel="stylesheet" href="estilos.css">
 	<link rel="stylesheet" href="Css/tema.css">
+	<link rel="stylesheet" href="Css/movil.css?v=1">
+	<script src="pwa/movil.js?v=1" defer></script>
 	<?php if (strtolower($emp['color']) !== EMPRESA_COLOR_BASE) { ?><style>:root { --verde: <?php echo e($emp['color']); ?>; --verde-oscuro: <?php echo e(colorOscuro($emp['color'])); ?>; }</style><?php } ?>
 	<title>GAFA - <?php echo e($emp['nombre']); ?></title>
 </head>
-<body>
-
+<body class="con-barra-movil">
+<div class="aviso-offline">Sin conexión</div>
 
 <header class="hea-pri" >
 	<div class="titPrincipal">
@@ -152,6 +160,25 @@ $rolNombre = nombreRol(rolUsuario($conexion));
         </div>
     </nav>
 </header>
+
+<?php
+$paginaActual = basename($_SERVER['SCRIPT_NAME'] ?? '');
+$accesosMovil = [
+    ['inicio.php', '🏠', 'Inicio', []],
+    ['verCompras.php', '🧾', 'Compras', ['altaCompras.php', 'asignarCompra.php']],
+    ['ventas.php', '💰', 'Ventas', ['resultados.php', 'registrarVenta.php']],
+    ['movimientosHacienda.php', '🐄', 'Hacienda', ['alquileres.php', 'todosLosProyectos.php']],
+    ['avisos.php', '🔔', 'Avisos', []],
+];
+?>
+<nav class="barra-movil" aria-label="Accesos rápidos">
+<?php foreach ($accesosMovil as [$href, $ico, $txt, $otras]) { ?>
+	<a href="./<?php echo $href; ?>" class="<?php echo ($paginaActual === $href || in_array($paginaActual, $otras, true)) ? 'activo' : ''; ?>">
+		<span class="ico"><?php echo $ico; ?></span><?php echo $txt; ?><?php if ($href === 'avisos.php' && $cantAvisos > 0) { ?> <span class="badge-avisos"><?php echo (int)$cantAvisos; ?></span><?php } ?>
+	</a>
+<?php } ?>
+</nav>
+<div class="aviso-instalar" id="aviso-instalar"><span>Instalá GAFA en tu celular para abrirla como una app.</span><button class="si" type="button">Instalar</button><button class="no" type="button">Ahora no</button></div>
 
 
 

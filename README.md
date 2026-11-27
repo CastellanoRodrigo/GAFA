@@ -99,11 +99,20 @@ php tests/run.php http://localhost:8000
 
 Necesita una base de prueba cargada con el volcado original y las migraciones, más `tests/esquema_compras.sql`. Las pruebas crean y borran datos: **no las ejecutes sobre una base real**. El envío por SMTP se prueba contra un servidor de mentira (`tests/fake_smtp.php`).
 
+## Versión celular (app instalable)
+
+El sistema se adapta a pantallas de celular: menú desplegable, barra inferior de accesos rápidos (Inicio, Compras, Ventas, Hacienda, Avisos), formularios y filtros a todo el ancho, y los listados se muestran como tarjetas. Además es una **PWA**: se puede instalar en la pantalla de inicio y se abre como una app, sin tienda de aplicaciones.
+
+- Archivos: `Css/movil.css`, `pwa/movil.js`, `manifest.php` (toma el nombre y el color de la empresa), `sw.js` y `sin-conexion.html`.
+- El service worker guarda solo estilos, scripts e imágenes. **Las páginas con datos nunca se guardan en el teléfono**; sin conexión se muestra una pantalla de aviso.
+- La instalación exige **HTTPS** (o `localhost`). En Android/Chrome aparece el botón "Instalar"; en iPhone: Safari → Compartir → "Agregar a inicio".
+- Si cambiás `Css/movil.css` o `pwa/movil.js`, el teléfono toma la versión nueva en la siguiente carga con conexión.
+
 ## Qué está probado y qué no
 
 - Probado de forma automática: login, permisos por rol, compras, ventas y resultados, alquileres, cobros, monedas, exportaciones, avisos, copias, instalador, subida de logo y archivos.
 - **No verificado contra servicios reales:** el envío por Gmail/Outlook (se probó el protocolo SMTP contra un servidor de mentira) y la API de WhatsApp Business. Hacé un primer envío de prueba con tus credenciales.
-- El aspecto visual se revisó por código y no con capturas de pantalla.
+- El aspecto celular se revisó con capturas en Chrome emulando un teléfono de 390 px de ancho. No se probó en un teléfono físico ni en iPhone/Safari.
 
 ## Seguridad
 

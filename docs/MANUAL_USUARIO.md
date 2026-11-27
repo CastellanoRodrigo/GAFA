@@ -63,6 +63,13 @@ Gestión → **Empresa y marca**: nombre, logo, color principal y datos de conta
 ## Copias de seguridad (solo administrador)
 Gestión → **Copias de seguridad**: descargá una copia cuando quieras. Guardala en un pendrive o en la nube, no solo en la computadora del sistema.
 
+## Usar GAFA desde el celular
+- Abrí la dirección del sistema en el navegador del celular e ingresá como siempre.
+- Abajo tenés una barra con los accesos más usados. El resto de las opciones están en el botón de las tres rayas, arriba.
+- Los listados se ven como tarjetas: cada dato lleva su título a la izquierda.
+- **Instalarla como app:** en Android aparece un cartel "Instalar" (o Menú ⋮ → *Instalar aplicación*). En iPhone: Safari → botón Compartir → *Agregar a inicio*. Queda un ícono de GAFA en la pantalla.
+- Sin internet, la app muestra "Sin conexión". Por seguridad no guarda los datos de la empresa en el teléfono.
+
 ## Preguntas frecuentes
 - **No veo el menú "Alta proyecto":** tu usuario es Lector. Pedile a un administrador el rol Operador.
 - **Una pantalla dice que falta ejecutar una migración:** avisale al administrador técnico; está explicado en el README.

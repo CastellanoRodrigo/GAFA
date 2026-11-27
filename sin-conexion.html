@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0a6111">
+    <title>GAFA - Sin conexión</title>
+    <style>
+        body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+               background: #f7f2e2; color: #1f1e1a; font-family: system-ui, sans-serif; text-align: center; padding: 24px; }
+        .caja { max-width: 360px; }
+        img { width: 96px; height: 96px; }
+        h1 { color: #16301a; font-size: 1.5rem; margin: 12px 0 8px; }
+        p { color: #5a5646; line-height: 1.45; }
+        button { margin-top: 14px; border: 0; border-radius: 999px; padding: 12px 26px; min-height: 46px;
+                 background: #0a6111; color: #fff; font-weight: 700; font-size: 1rem; }
+    </style>
+</head>
+<body>
+    <div class="caja">
+        <img src="pwa/icon-192.png" alt="GAFA">
+        <h1>Sin conexión</h1>
+        <p>No se pudo llegar al sistema. Revisá tu internet o los datos del celular y volvé a intentar. Por seguridad, los datos de la empresa no se guardan en el teléfono.</p>
+        <button onclick="location.reload()">Reintentar</button>
+    </div>
+</body>
+</html>

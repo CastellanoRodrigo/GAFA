@@ -827,6 +827,28 @@ $dbR->query("DELETE FROM intentoslogin");
 foreach (glob($outbox . '/*.eml') ?: [] as $viejo) @unlink($viejo);
 $dbR->close();
 
+// 4p. Version celular / app instalable (PWA)
+$rm = peticion("$base/manifest.php");
+$mj = json_decode($rm['body'], true);
+prueba('manifest.php responde JSON de manifiesto con nombre, inicio y modo app', $rm['code'] === 200 && stripos($rm['headers'], 'application/manifest+json') !== false
+    && is_array($mj) && ($mj['display'] ?? '') === 'standalone' && ($mj['start_url'] ?? '') === './inicio.php' && strpos($mj['name'] ?? '', 'GAFA') === 0);
+$iconosOk = true;
+foreach (($mj['icons'] ?? []) as $ic) { $ri = peticion("$base/" . $ic['src']); if ($ri['code'] !== 200 || stripos($ri['headers'], 'image/png') === false) $iconosOk = false; }
+prueba('el manifiesto trae iconos 192, 512 y maskable y todos existen', $iconosOk && count($mj['icons'] ?? []) >= 3);
+$rs = peticion("$base/sw.js");
+prueba('service worker disponible, sin cachear paginas PHP', $rs['code'] === 200 && strpos($rs['body'], "mode === 'navigate'") !== false && strpos($rs['body'], 'sin-conexion.html') !== false);
+prueba('pantalla "sin conexion" disponible', strpos(peticion("$base/sin-conexion.html")['body'], 'Sin conexión') !== false);
+foreach (['Css/movil.css', 'pwa/movil.js', 'pwa/apple-touch-icon.png'] as $recurso) prueba("recurso movil $recurso se sirve", peticion("$base/$recurso")['code'] === 200);
+$ri = peticion("$base/inicio.php", null, $cookieAdmin)['body'];
+prueba('las paginas internas declaran viewport, manifiesto, estilos moviles, barra inferior y aviso de instalacion',
+    strpos($ri, 'viewport-fit=cover') !== false && strpos($ri, 'rel="manifest"') !== false && strpos($ri, 'Css/movil.css') !== false
+    && strpos($ri, 'class="barra-movil"') !== false && strpos($ri, 'id="aviso-instalar"') !== false && strpos($ri, 'pwa/movil.js') !== false);
+prueba('la barra inferior marca la pagina actual', preg_match('~<a href="\./inicio\.php" class="activo">~', $ri) === 1);
+prueba('las paginas internas no emiten avisos de PHP', !preg_match('/Notice:|Warning:|Fatal error/', peticion("$base/usuarios.php", null, $cookieAdmin)['body']));
+foreach (['login.php', 'recuperar.php'] as $pg) prueba("$pg (publica) enlaza el manifiesto y es adaptable", strpos(peticion("$base/$pg")['body'], 'rel="manifest"') !== false && strpos(peticion("$base/$pg")['body'], 'width=device-width') !== false);
+prueba('el CSS ya no fuerza un ancho fijo de 320px', strpos(file_get_contents("$raiz/estilos.css"), 'width: 320px !important') === false);
+prueba('sin sesion no hay barra inferior ni datos en el manifiesto', strpos(peticion("$base/manifest.php")['body'], 'usuario') === false);
+
 // 5. Subida de PDF
 $tmp = tempnam(sys_get_temp_dir(), 'pdf');
 file_put_contents($tmp, "%PDF-1.4\n%%EOF");
